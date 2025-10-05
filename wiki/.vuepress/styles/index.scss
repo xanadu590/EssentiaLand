@@ -2,6 +2,6 @@
 .ai-row{
   display: flex;
   flex-wrap: wrap;    /* 超出则自动换行 */
-  gap: 12px;          /* 控制图片之间的间距 */
+  gap: 0px;          /* 控制图片之间的间距 */
   align-items: flex-start;
 }
