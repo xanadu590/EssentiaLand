@@ -13,8 +13,8 @@ isOriginal: true
 # [灵动骑士][EtherealKnight]
 
 <p align="center">
-  <img src="/images/EtherealKnightEverydayWear.jpg" alt="日常服" width="45%">
-  <img src="/images/EtherealKnightCombatSuit.jpg" alt="战斗服" width="45%">
+  <img src="/image/EtherealKnightEverydayWear.jpg" alt="日常服" width="45%">
+  <img src="/image/EtherealKnightCombatSuit.jpg" alt="战斗服" width="45%">
 </p >
 
 ## 基本信息
