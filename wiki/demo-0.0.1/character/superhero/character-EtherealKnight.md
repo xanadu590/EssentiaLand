@@ -15,8 +15,8 @@ isOriginal: true
 <AIToggle />
 
 <div class="ai-row">
-  <AIMedia src="/images/real_photo.jpg" alt="普通图" />
-  <AIMedia src="/images/ai_photo.jpg" alt="AI图" :isAI="true" />
+  <AIMedia src="/images/EtherealKnightEverydayWear.jpg" alt="AI图" :isAI="true" />
+  <AIMedia src="/images/EtherealKnightCombatSuit.jpg" alt="AI图" :isAI="true" />
 </div>
 
 ## 基本信息
