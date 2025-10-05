@@ -4,6 +4,7 @@
 </blockquote>
 <ul>
 <li><RouteLink to="/demo-0.0.1/character/superhero/character-EtherealKnight.html">灵动骑士</RouteLink></li>
+<li><RouteLink to="/demo-0.0.1/character/superhero/character-Scourge.html">天灾</RouteLink></li>
 </ul>
 </div></template>
 
