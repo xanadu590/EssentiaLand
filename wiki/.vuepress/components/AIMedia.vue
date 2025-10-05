@@ -82,18 +82,21 @@ const blurPreview = computed(() => props.blurPreview !== false)
 
 <style scoped>
 
-/* 原来：margin:.5rem; */
+/* 外层容器不要再占 inline 宽度，也不要外边距 */
 .ai-media {
-  display:inline-block;
-  text-align:center;
+  display:block;
   margin:0;
+  text-align:center;
 }
 
+/* 图片占满容器，避免“看起来更小” */
 .ai-media img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
+  width:100%;
+  max-width:100%;
+  height:auto;
+  border-radius:8px;
 }
+
 .ai-veil {
   position: relative;
   display: inline-block;
