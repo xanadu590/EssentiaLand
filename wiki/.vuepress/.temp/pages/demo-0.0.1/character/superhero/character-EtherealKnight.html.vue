@@ -1,8 +1,8 @@
 <template><div><h1 id="灵动骑士" tabindex="-1"><a class="header-anchor" href="#灵动骑士"><span><RouteLink to="/demo-0.0.1/character/superhero/character-EtherealKnight.html">灵动骑士</RouteLink></span></a></h1>
-<p align="center">
-  <img src="/image/EtherealKnightEverydayWear.jpg" alt="日常服" width="45%">
-  <img src="/image/EtherealKnightCombatSuit.jpg" alt="战斗服" width="45%">
-</p >
+<div style="text-align:center">
+  <AIMedia src="/image/EtherealKnightEverydayWear.jpg" alt="日常服（AI）" width="45%" />
+  <AIMedia src="/image/EtherealKnightCombatSuit.jpg"  alt="战斗服（AI）" width="45%" />
+</div>
 <h2 id="基本信息" tabindex="-1"><a class="header-anchor" href="#基本信息"><span>基本信息</span></a></h2>
 <ul>
 <li>姓名：宇文南城</li>
@@ -10,8 +10,6 @@
 <li>英雄名：灵动骑士（Ethereal Knight)</li>
 <li>昵称：灵骑、07、E-Knight</li>
 <li>年龄：19</li>
-</ul>
-<AIMedia src="/image/LOGO-light.jpg" alt="测试图" width="45%" /><ul>
 <li>种族：人类</li>
 <li>出生年月：2011年7月30日</li>
 <li>职业：学生</li>

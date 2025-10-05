@@ -81,6 +81,14 @@ const blurPreview = computed(() => props.blurPreview !== false)
 </script>
 
 <style scoped>
+
+/* 原来：margin:.5rem; */
+.ai-media {
+  display:inline-block;
+  text-align:center;
+  margin:0;
+}
+
 .ai-media img {
   max-width: 100%;
   height: auto;
