@@ -3,13 +3,13 @@ export const redirects = JSON.parse("{}")
 export const routes = Object.fromEntries([
   ["/portfolio.html", { loader: () => import(/* webpackChunkName: "portfolio.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/portfolio.html.js"), meta: {"title":"档案主页","icon":"house"} }],
   ["/", { loader: () => import(/* webpackChunkName: "index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/index.html.js"), meta: {"title":"巅峰世界","icon":"house"} }],
-  ["/demo-0.0.1/", { loader: () => import(/* webpackChunkName: "demo-0.0.1_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/index.html.js"), meta: {"title":"世界观总览","icon":"laptop-code"} }],
   ["/demo/disable.html", { loader: () => import(/* webpackChunkName: "demo_disable.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo/disable.html.js"), meta: {"title":"布局与功能禁用","icon":"gears","order":4} }],
   ["/demo/encrypt.html", { loader: () => import(/* webpackChunkName: "demo_encrypt.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo/encrypt.html.js"), meta: {"title":"密码加密的文章","icon":"lock"} }],
   ["/demo/layout.html", { loader: () => import(/* webpackChunkName: "demo_layout.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo/layout.html.js"), meta: {"title":"布局","icon":"object-group","order":2} }],
   ["/demo/markdown.html", { loader: () => import(/* webpackChunkName: "demo_markdown.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo/markdown.html.js"), meta: {"title":"Markdown 展示","icon":"fa6-brands:markdown","order":2} }],
   ["/demo/page.html", { loader: () => import(/* webpackChunkName: "demo_page.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo/page.html.js"), meta: {"title":"页面配置","icon":"file","order":3} }],
   ["/demo/", { loader: () => import(/* webpackChunkName: "demo_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo/index.html.js"), meta: {"title":"主要功能与配置演示","icon":"laptop-code"} }],
+  ["/demo-0.0.1/", { loader: () => import(/* webpackChunkName: "demo-0.0.1_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/index.html.js"), meta: {"title":"世界观总览","icon":"laptop-code"} }],
   ["/en/portfolio.html", { loader: () => import(/* webpackChunkName: "en_portfolio.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/portfolio.html.js"), meta: {"title":"Portfolio Home","icon":"house"} }],
   ["/en/", { loader: () => import(/* webpackChunkName: "en_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/index.html.js"), meta: {"title":"项目主页","icon":"house"} }],
   ["/guide/", { loader: () => import(/* webpackChunkName: "guide_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/guide/index.html.js"), meta: {"title":"指南","icon":"lightbulb"} }],
@@ -29,10 +29,10 @@ export const routes = Object.fromEntries([
   ["/demo-0.0.1/character/superhero/character-HearTone.html", { loader: () => import(/* webpackChunkName: "demo-0.0.1_character_superhero_character-HearTone.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/character-HearTone.html.js"), meta: {"title":"天灾"} }],
   ["/demo-0.0.1/character/superhero/character-Scourge.html", { loader: () => import(/* webpackChunkName: "demo-0.0.1_character_superhero_character-Scourge.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/character-Scourge.html.js"), meta: {"title":"天灾"} }],
   ["/demo-0.0.1/character/superhero/", { loader: () => import(/* webpackChunkName: "demo-0.0.1_character_superhero_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/index.html.js"), meta: {"title":"超级英雄"} }],
-  ["/en/guide/bar/baz.html", { loader: () => import(/* webpackChunkName: "en_guide_bar_baz.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/bar/baz.html.js"), meta: {"title":"Baz","icon":"circle-info"} }],
-  ["/en/guide/bar/", { loader: () => import(/* webpackChunkName: "en_guide_bar_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/bar/index.html.js"), meta: {"title":"Bar feature","icon":"lightbulb"} }],
   ["/en/guide/foo/ray.html", { loader: () => import(/* webpackChunkName: "en_guide_foo_ray.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/foo/ray.html.js"), meta: {"title":"Ray","icon":"circle-info"} }],
   ["/en/guide/foo/", { loader: () => import(/* webpackChunkName: "en_guide_foo_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/foo/index.html.js"), meta: {"title":"Foo feature","icon":"lightbulb"} }],
+  ["/en/guide/bar/baz.html", { loader: () => import(/* webpackChunkName: "en_guide_bar_baz.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/bar/baz.html.js"), meta: {"title":"Baz","icon":"circle-info"} }],
+  ["/en/guide/bar/", { loader: () => import(/* webpackChunkName: "en_guide_bar_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/bar/index.html.js"), meta: {"title":"Bar feature","icon":"lightbulb"} }],
   ["/404.html", { loader: () => import(/* webpackChunkName: "404.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/404.html.js"), meta: {"title":""} }],
 ]);
 
