@@ -30,10 +30,41 @@ const ai = inject(AI_INJECT_KEY) as { show: boolean }
 </script>
 
 <style scoped>
-.ai-media img{ border-radius: 6px; max-width: 100%; height: auto; }
-.ai-media figcaption{ color:#666; font-size: 13px; margin-top: 6px; }
-.ai-placeholder{
-  border: 1px dashed #ddd; border-radius: 6px; padding: 10px; color:#666;
-  text-align: center; font-size: 14px; background: #fafafa;
+.ai-media figcaption {
+  color:#666;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+/* [CHANGE] 图片裁剪与对齐增强 */
+.ai-media {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 12px;
+}
+
+/* 固定显示区域，高度统一、自动裁剪、保持居中 */
+.ai-media img {
+  border-radius: 6px;
+  width: 220px;           /* 固定宽度，可根据需要调整 */
+  height: 300px;          /* 固定高度，确保并排统一 */
+  object-fit: cover;      /* 自动裁剪图片而不变形 */
+  object-position: center;/* 居中裁剪区域 */
+}
+
+/* 占位符也保持相同尺寸 */
+.ai-placeholder {
+  display: inline-block;
+  vertical-align: top;
+  width: 220px;
+  height: 300px;
+  border: 1px dashed #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  color: #666;
+  text-align: center;
+  font-size: 14px;
+  background: #fafafa;
+  margin-right: 12px;
 }
 </style>

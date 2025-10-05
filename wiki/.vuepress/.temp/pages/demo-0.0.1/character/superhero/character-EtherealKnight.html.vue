@@ -1,9 +1,5 @@
 <template><div><h1 id="灵动骑士" tabindex="-1"><a class="header-anchor" href="#灵动骑士"><span><RouteLink to="/demo-0.0.1/character/superhero/character-EtherealKnight.html">灵动骑士</RouteLink></span></a></h1>
-<AIToggle /><div class="ai-row">
-  <AIMedia src="/image/EtherealKnightCombatSuit.jpg" alt="AI图" :isAI="true" />
-  <AIMedia src="/image/EtherealKnightEverydayWear.jpg" alt="AI图" :isAI="true" />
-</div>
-<h2 id="基本信息" tabindex="-1"><a class="header-anchor" href="#基本信息"><span>基本信息</span></a></h2>
+<AIMedia src="/image/EtherealKnightCombatSuit.jpg" caption="AI战斗服"/><AIMedia src="/image/EtherealKnightEverydayWear.jpg" caption="AI日常服"/><h2 id="基本信息" tabindex="-1"><a class="header-anchor" href="#基本信息"><span>基本信息</span></a></h2>
 <ul>
 <li>姓名：宇文南城</li>
 <li>性别：女</li>
