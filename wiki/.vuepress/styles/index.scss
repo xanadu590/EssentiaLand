@@ -1,7 +1,13 @@
 /* 一行排图的容器 */
-.ai-row{
-  display: flex;
-  flex-wrap: wrap;    /* 超出则自动换行 */
-  gap: 0px;          /* 控制图片之间的间距 */
-  align-items: flex-start;
+.ai-row {
+  display: flex;          /* 横向排列 */
+  flex-wrap: wrap;        /* 超出自动换行 */
+  gap: 10px;                 /* 图片间距为0，实现无缝拼接 */
+  align-items: flex-start;/* 顶部对齐 */
+  justify-content: flex-start;/* 顶格对齐 */
+}
+
+/* 子元素去除外边距，防止出现细微空隙 */
+.ai-row > * {
+  margin: 0 !important;
 }

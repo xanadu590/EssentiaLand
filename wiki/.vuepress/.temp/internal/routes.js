@@ -29,10 +29,10 @@ export const routes = Object.fromEntries([
   ["/demo-0.0.1/character/superhero/character-HearTone.html", { loader: () => import(/* webpackChunkName: "demo-0.0.1_character_superhero_character-HearTone.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/character-HearTone.html.js"), meta: {"title":"天灾"} }],
   ["/demo-0.0.1/character/superhero/character-Scourge.html", { loader: () => import(/* webpackChunkName: "demo-0.0.1_character_superhero_character-Scourge.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/character-Scourge.html.js"), meta: {"title":"天灾"} }],
   ["/demo-0.0.1/character/superhero/", { loader: () => import(/* webpackChunkName: "demo-0.0.1_character_superhero_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/index.html.js"), meta: {"title":"超级英雄"} }],
-  ["/en/guide/bar/baz.html", { loader: () => import(/* webpackChunkName: "en_guide_bar_baz.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/bar/baz.html.js"), meta: {"title":"Baz","icon":"circle-info"} }],
-  ["/en/guide/bar/", { loader: () => import(/* webpackChunkName: "en_guide_bar_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/bar/index.html.js"), meta: {"title":"Bar feature","icon":"lightbulb"} }],
   ["/en/guide/foo/ray.html", { loader: () => import(/* webpackChunkName: "en_guide_foo_ray.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/foo/ray.html.js"), meta: {"title":"Ray","icon":"circle-info"} }],
   ["/en/guide/foo/", { loader: () => import(/* webpackChunkName: "en_guide_foo_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/foo/index.html.js"), meta: {"title":"Foo feature","icon":"lightbulb"} }],
+  ["/en/guide/bar/baz.html", { loader: () => import(/* webpackChunkName: "en_guide_bar_baz.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/bar/baz.html.js"), meta: {"title":"Baz","icon":"circle-info"} }],
+  ["/en/guide/bar/", { loader: () => import(/* webpackChunkName: "en_guide_bar_index.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/en/guide/bar/index.html.js"), meta: {"title":"Bar feature","icon":"lightbulb"} }],
   ["/404.html", { loader: () => import(/* webpackChunkName: "404.html" */"C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/404.html.js"), meta: {"title":""} }],
 ]);
 

@@ -18,7 +18,7 @@ sidebar: false
 [superhero]: /demo-0.0.1/character/superhero/#超级英雄
 [EtherealKnight]: /demo-0.0.1/character/superhero/character-EtherealKnight.md
 [Scourge]: /demo-0.0.1/character/superhero/character-Scourge.md
-[HearTone]： /demo-0.0.1/character/superhero/character-HearTone.md
+[HearTone]:/demo-0.0.1/character/superhero/character-HearTone.md
 
 
 
