@@ -1,7 +1,3 @@
-<AIToggle />
-
-
-
 ---
 title: 灵动骑士
 sidebar: false
@@ -13,6 +9,8 @@ tag:
 - 世界英雄
 isOriginal: true
 ---
+
+<AIToggle />
 
 # [灵动骑士][EtherealKnight]
 
