@@ -1,6 +1,6 @@
 <template>
   <div class="ai-media">
-    < img :src="src" :alt="alt" :width="width" :height="height" loading="lazy" />
+    <img :src="src" :alt="alt" :width="width" :height="height" loading="lazy" />
     <slot />
   </div>
 </template>
