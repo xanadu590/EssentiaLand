@@ -84,17 +84,20 @@ const blurPreview = computed(() => props.blurPreview !== false)
 
 /* 外层容器不要再占 inline 宽度，也不要外边距 */
 .ai-media {
-  display:block;
+  display: inline-block;  /* 让图片容器并排 */
+  vertical-align: top;    /* 顶部对齐 */
   margin:0;
   text-align:center;
 }
 
 /* 图片占满容器，避免“看起来更小” */
 .ai-media img {
-  width:100%;
-  max-width:100%;
-  height:auto;
-  border-radius:8px;
+  display: block;
+  margin: 0 auto;
+  width: auto;          /* 宽度自动，避免被拉伸 */
+  height: 420px;        /* 固定高度，统一显示 */
+  object-fit: cover;    /* 保持比例并裁剪多余部分 */
+  border-radius: 8px;
 }
 
 .ai-veil {
