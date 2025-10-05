@@ -105,12 +105,19 @@ const blurPreview = computed(() => props.blurPreview !== false)
 .ai-veil:focus .ai-mask {
   box-shadow: 0 0 0 3px rgba(25,120,255,.35);
 }
+/* 模糊状态：图片保留尺寸，只改变视觉样式 */
 .ai-blur {
-  filter: blur(14px) brightness(0.9);
-  transform: scale(1.02);
-  border-radius: 8px;
-  max-width: 100%;
-  height: auto;
+  filter: blur(18px) brightness(0.7);
+  opacity: 0.6;              /* 半透明，不彻底隐藏 */
+  pointer-events: none;      /* 防止点击 */
+  transition: all 0.4s ease; /* 动画过渡 */
+}
+/* 聚焦/点击后恢复清晰 */
+.ai-veil:focus .ai-blur,
+.ai-veil:hover .ai-blur {
+  filter: blur(0) brightness(1);
+  opacity: 1;
+  pointer-events: auto;
 }
 .ai-mask {
   position: absolute;
