@@ -1,39 +1,49 @@
-<!-- .vuepress/components/AIMedia.vue -->
 <template>
-  <ClientOnly>
-    <figure v-if="ai.show" class="ai-media">
-      < img :src="src" :alt="alt" :width="width" :height="height" loading="lazy" />
-      <figcaption v-if="caption">{{ caption }}</figcaption>
-    </figure>
-
-    <div v-else class="ai-placeholder">
-      <slot name="placeholder">
-        🔒 AI 生成内容已隐藏
-      </slot>
-    </div>
-  </ClientOnly>
+  <div
+    class="ai-media"
+    :class="{ blurred: isAI && !localShow }"
+    @click="isAI && toggleBlur()"
+  >
+    <img :src="src" :alt="alt" loading="lazy" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
-import { AI_INJECT_KEY } from '../client'
+import { inject, ref, watch } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   src: string
   alt?: string
-  width?: string | number
-  height?: string | number
-  caption?: string
+  isAI?: boolean
 }>()
 
-const ai = inject(AI_INJECT_KEY) as { show: boolean }
+// 从 AIToggle 注入的全局状态
+const showAI = inject('showAI', ref(true))
+const localShow = ref(showAI.value)
+
+// 让它随全局按钮变化
+watch(showAI, v => (localShow.value = v))
+
+// 点击时允许单独切换（仅 AI 图有效）
+const toggleBlur = () => {
+  if (props.isAI) localShow.value = !localShow.value
+}
 </script>
 
 <style scoped>
-.ai-media img{ border-radius: 6px; max-width: 100%; height: auto; }
-.ai-media figcaption{ color:#666; font-size:13px; margin-top:6px; }
-.ai-placeholder{
-  border: 1px dashed #ddd; border-radius: 6px; padding: 10px; color:#666;
-  text-align: center; font-size: 14px; background: #fafafa;
+.ai-media {
+  display: inline-block;
+  margin: .5rem;
+  cursor: pointer;
+}
+.ai-media img {
+  width: 100%;
+  max-width: 600px;
+  border-radius: 8px;
+  transition: filter .4s, transform .4s;
+}
+.ai-media.blurred img {
+  filter: blur(18px) brightness(0.7);
+  transform: scale(1.01);
 }
 </style>

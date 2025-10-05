@@ -12,17 +12,11 @@ isOriginal: true
 
 # [灵动骑士][EtherealKnight]
 
+<AIToggle />
+
 <div class="ai-row">
-  <AIMedia
-    src="/image/EtherealKnightEverydayWear.jpg"
-    alt="AI图：灵动骑士·日常服"
-    width="720"
-  />
-  <AIMedia
-    src="/image/EtherealKnightCombatSuit.jpg"
-    alt="AI图：灵动骑士·战斗服"
-    width="720"
-  /> 
+  <AIMedia src="/images/EtherealKnightCombatSuit.jpg" alt="AI图" :isAI="true" />
+  <AIMedia src="/images/EtherealKnightEverydayWear.jpg" alt="AI图" :isAI="true" />
 </div>
 
 ## 基本信息
