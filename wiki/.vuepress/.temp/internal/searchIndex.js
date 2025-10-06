@@ -394,14 +394,14 @@ export const SEARCH_INDEX = [
   {
     "title": "",
     "headers": [],
-    "path": "/demo-0.0.1/character/divineproxy/",
+    "path": "/demo-0.0.1/character/CCO/",
     "pathLocale": "/",
     "extraFields": []
   },
   {
     "title": "",
     "headers": [],
-    "path": "/demo-0.0.1/character/CCO/",
+    "path": "/demo-0.0.1/character/divineproxy/",
     "pathLocale": "/",
     "extraFields": []
   },
@@ -585,6 +585,13 @@ export const SEARCH_INDEX = [
     "extraFields": []
   },
   {
+    "title": "",
+    "headers": [],
+    "path": "/demo-0.0.1/character/superhero/character-WizardHope.html",
+    "pathLocale": "/",
+    "extraFields": []
+  },
+  {
     "title": "超级英雄",
     "headers": [],
     "path": "/demo-0.0.1/character/superhero/",
@@ -653,13 +660,6 @@ export const SEARCH_INDEX = [
     "title": "",
     "headers": [],
     "path": "/404.html",
-    "pathLocale": "/",
-    "extraFields": []
-  },
-  {
-    "title": "",
-    "headers": [],
-    "path": "/demo-0.0.1/character/superhero/character-WizardHope.html",
     "pathLocale": "/",
     "extraFields": []
   }
