@@ -156,6 +156,26 @@ export default hopeTheme({
       categoryId: "DIC_kwDOG_Pt2M4COD69",
     },
 
+    search: {
+    // 建议做一下 i18n
+    locales: {
+      '/':  { placeholder: 'Search' },
+      '/zh/': { placeholder: '搜索文档' },
+    },
+    // 高级可选：最多展示条数、热键等
+    maxSuggestions: 15,
+    hotKeys: ['s', '/'],        // 焦点快捷键
+    // isSearchable: (page) => true, // 也可过滤不参与索引的页面
+  },
+
+  photoSwipe: {
+    // i18n
+    locales: {
+      '/':   { close: 'Close', fullscreen: 'Fullscreen' },
+      '/zh/': { close: '关闭', fullscreen: '全屏' },
+    },
+  },
+
     components: {
       components: ["Badge", "VPCard"],
     },
