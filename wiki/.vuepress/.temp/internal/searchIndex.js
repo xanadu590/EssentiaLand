@@ -14,6 +14,13 @@ export const SEARCH_INDEX = [
     "extraFields": []
   },
   {
+    "title": "世界大事年表",
+    "headers": [],
+    "path": "/demo-0.0.1/timeline.html",
+    "pathLocale": "/",
+    "extraFields": []
+  },
+  {
     "title": "角色介绍",
     "headers": [],
     "path": "/demo-0.0.1/character/",
@@ -23,7 +30,7 @@ export const SEARCH_INDEX = [
   {
     "title": "",
     "headers": [],
-    "path": "/demo-0.0.1/character/CCO/",
+    "path": "/demo-0.0.1/character/divineproxy/",
     "pathLocale": "/",
     "extraFields": []
   },
@@ -223,7 +230,7 @@ export const SEARCH_INDEX = [
   {
     "title": "",
     "headers": [],
-    "path": "/demo-0.0.1/character/divineproxy/",
+    "path": "/demo-0.0.1/character/CCO/",
     "pathLocale": "/",
     "extraFields": []
   },
@@ -235,9 +242,17 @@ export const SEARCH_INDEX = [
     "extraFields": []
   },
   {
-    "title": "世界大事年表",
-    "headers": [],
-    "path": "/demo-0.0.1/timeline.html",
+    "title": "",
+    "headers": [
+      {
+        "level": 2,
+        "title": "人物关系图谱",
+        "slug": "人物关系图谱",
+        "link": "#人物关系图谱",
+        "children": []
+      }
+    ],
+    "path": "/demo-0.0.1/characterline.html",
     "pathLocale": "/",
     "extraFields": []
   }

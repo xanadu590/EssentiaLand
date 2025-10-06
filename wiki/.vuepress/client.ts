@@ -3,6 +3,7 @@ import { defineClientConfig } from 'vuepress/client'
 import { reactive, h } from 'vue'
 import AIToggle from './components/AIToggle.vue'
 import AIMedia from './components/AIMedia.vue' // ← 新增：显式引入
+import WorldTimeline from './components/WorldTimeline.vue'
 import RelationCards from './components/RelationCards.vue' 
 
 export type AISetting = {
@@ -33,6 +34,9 @@ export default defineClientConfig({
 
     // ✅ 显式注册组件（可选，不注册也能用）
     app.component('AIMedia', AIMedia)
+
+    app.component('WorldTimeline', WorldTimeline)           // ← 新增：全局注册
+    // ……你原来 AI 注入、rootComponents 等保留不动
     
     app.component('RelationCards', RelationCards)          // ← 新增：全局注册
   },
