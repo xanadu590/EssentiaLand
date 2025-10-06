@@ -18,7 +18,7 @@ actions:
     link: ./demo-0.0.1/character/
 
   - text: 时间线
-    link: ./demo-0.0.1/timeline.md
+    link: ./demo-0.0.1/timeline/
 
 features:
   - title: 信念与冲突

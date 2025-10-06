@@ -14,13 +14,6 @@ export const SEARCH_INDEX = [
     "extraFields": []
   },
   {
-    "title": "世界大事年表",
-    "headers": [],
-    "path": "/demo-0.0.1/timeline.html",
-    "pathLocale": "/",
-    "extraFields": []
-  },
-  {
     "title": "角色介绍",
     "headers": [],
     "path": "/demo-0.0.1/character/",
@@ -238,6 +231,13 @@ export const SEARCH_INDEX = [
     "title": "",
     "headers": [],
     "path": "/404.html",
+    "pathLocale": "/",
+    "extraFields": []
+  },
+  {
+    "title": "世界大事年表",
+    "headers": [],
+    "path": "/demo-0.0.1/timeline/",
     "pathLocale": "/",
     "extraFields": []
   }
