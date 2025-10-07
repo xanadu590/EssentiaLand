@@ -1,107 +1,103 @@
 <template>
   <ClientOnly>
-    <div ref="el" class="rg-wrap"></div>
+    <!-- 外层容器高度可通过 props.height 覆盖 -->
+    <div ref="el" class="rg-wrap" :style="{ height: wrapHeight }"></div>
   </ClientOnly>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
-import { Network } from 'vis-network'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import 'vis-network/styles/vis-network.css'
 
-// 传入数据结构：节点 & 边
-const props = defineProps<{
-  height?: string | number
-  /** 节点：id 唯一，label 显示名，可选 url、group、image(头像) */
-  nodes: Array<{
-    id: string
-    label: string
-    url?: string
-    group?: string
-    image?: string   // '/images/xxx.png' 开启后会显示圆形头像
-  }>
-  /** 边：from → to，可选 label（关系名），type 用于着色 */
-  edges: Array<{
-    from: string
-    to: string
-    label?: string
-    type?: 'friend' | 'family' | 'ally' | 'enemy' | 'other'
-  }>
-}>()
+// 方案二：使用 standalone 构建（运行最稳，缺点是没有 d.ts）
+// 为避免 TypeScript 报错，对 import 做一次忽略即可。
+// 如果你的打包器对路径敏感，下面也可以改成：
+//   'vis-network/standalone/esm/vis-network'
+/* @ts-ignore */
+import { Network } from 'vis-network/standalone'
 
-const el = ref<HTMLElement | null>(null)
-let net: Network | null = null
+type RelType = 'friend' | 'ally' | 'family' | 'enemy' | string
 
-// 边的颜色方案（按关系类型）
-const edgeColors: Record<string, string> = {
-  friend: '#34c759',
-  ally:   '#2eaadc',
-  family: '#a78bfa',
-  enemy:  '#ef4444',
-  other:  '#9ca3af',
+interface Node {
+  id: string
+  label: string
+  url?: string
+  group?: string
+  image?: string  // 头像地址（可选，传了就用圆形头像）
 }
 
-const build = () => {
-  if (!el.value) return
+interface Edge {
+  from: string
+  to: string
+  type?: RelType    // 用来决定连线颜色
+}
 
-  // 组织 vis-network 所需数据
-  const data = {
+const props = defineProps<{
+  height?: string | number
+  nodes: Node[]
+  edges: Edge[]
+}>()
+
+const wrapHeight = computed(
+  () => (typeof props.height === 'number' ? `${props.height}px` : props.height || '480px')
+)
+
+const el = ref<HTMLElement | null>(null)
+let net: any | null = null // standalone 无类型，这里用 any 避免 TS 红线
+
+// 连线颜色方案
+const edgeColors: Record<string, string> = {
+  friend: '#34c759', // 好友  绿
+  ally:   '#2eaadc', // 同盟  蓝
+  family: '#a78bfa', // 家人  紫
+  enemy:  '#ef4444', // 敌对  红
+}
+
+function buildData() {
+  return {
     nodes: props.nodes.map(n => ({
-      id: n.id,
-      label: n.label,
-      group: n.group,
-      // 有头像就用圆形头像，没有就用圆形节点
+      ...n,
+      // 有头像就用圆形头像；没有就用 dot
       shape: n.image ? 'circularImage' : 'dot',
       image: n.image,
-      size: n.image ? 40 : 18,
-      color: {
-        background: 'var(--vp-c-bg-soft, var(--c-bg, #ffffff))',
-        border: 'var(--c-border, #e5e7eb)',
-        highlight: { background: 'var(--vp-c-bg, #fff)', border: 'var(--c-brand, #3ea7ff)' }
-      },
-      font: {
-        color: 'var(--c-text, #111)',
-        face: 'inherit',
-      }
+      size: n.image ? 28 : 18,
+      font: { color: 'var(--c-text)', size: 16 },
+      borderWidth: 1,
     })),
-    edges: props.edges.map(e => {
-      const c = edgeColors[e.type || 'other']
-      return {
-        from: e.from,
-        to: e.to,
-        label: e.label,
-        arrows: 'to',
-        color: { color: c, highlight: c },
-        font: { color: 'var(--c-text, #111)', align: 'top' },
-        smooth: true,
-      }
-    }),
+    edges: props.edges.map(e => ({
+      ...e,
+      color: edgeColors[e.type ?? 'ally'] ?? '#999',
+      width: 2,
+      smooth: { type: 'dynamic' },
+    })),
   }
+}
 
-  // 画布与交互设置
+function mount() {
+  if (!el.value) return
+  const data = buildData()
+
   const options = {
     autoResize: true,
-    height: (typeof props.height === 'number' ? `${props.height}px` : props.height) || '420px',
     layout: { improvedLayout: true },
-    physics: {
-      solver: 'forceAtlas2Based',
-      stabilization: { iterations: 150 },
-    },
-    interaction: {
-      hover: true,
-      tooltipDelay: 120,
-      zoomView: true,
-      dragView: true,
-    },
+    physics: { stabilization: true },
     nodes: {
-      borderWidth: 1,
-      shapeProperties: { useBorderWithImage: true },
+      color: {
+        border: 'var(--vp-c-border, var(--c-border, #dcdfe6))',
+        background: 'var(--vp-c-bg-soft, var(--c-bg, #fff))',
+      },
     },
+    edges: {
+      selectionWidth: 3,
+      hoverWidth: 1.5,
+    },
+    interaction: { hover: true },
   }
 
   net = new Network(el.value, data, options)
 
-  // 点击节点 → 跳转对应人物页（若提供 url）
-  net.on('click', params => {
+  // 点击节点 → 跳转对应页（如果节点提供了 url）
+  net.on('click', (params: any) => {
     const id = params?.nodes?.[0]
     if (!id) return
     const node = props.nodes.find(n => n.id === id)
@@ -109,29 +105,36 @@ const build = () => {
   })
 }
 
-onMounted(build)
-onBeforeUnmount(() => { net?.destroy(); net = null })
+onMounted(mount)
 
-// 数据变动时重建（用于后续扩展）
-watch(() => [props.nodes, props.edges], () => {
-  net?.destroy(); net = null
-  build()
-}, { deep: true })
+onBeforeUnmount(() => {
+  net?.destroy()
+  net = null
+})
+
+// 数据变化 → 同步更新
+watch(
+  () => [props.nodes, props.edges],
+  () => {
+    if (!net) return
+    net.setData(buildData())
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>
-.rg-wrap{
+.rg-wrap {
   width: 100%;
-  background: var(--vp-c-bg, var(--c-bg, #fff));
-  border: 1px solid var(--c-border, #e5e7eb);
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.06);
+  border: 1px solid var(--vp-c-border, var(--c-border, #e5e7eb));
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft, var(--c-bg, #fff));
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .06);
 }
 
-/* 深色模式适配 */
-html[data-theme="dark"] .rg-wrap{
-  background: var(--vp-c-bg, #0f1115);
-  border-color: #2f3136;
-  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+/* 暗色模式适配：外框与底色 */
+html[data-theme='dark'] .rg-wrap {
+  background: var(--vp-c-bg-soft, #111);
+  border-color: var(--vp-c-border, #333);
 }
 </style>
