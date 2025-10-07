@@ -7,6 +7,21 @@ export const SEARCH_INDEX = [
     "extraFields": []
   },
   {
+    "title": "",
+    "headers": [
+      {
+        "level": 2,
+        "title": "人物关系图谱",
+        "slug": "人物关系图谱",
+        "link": "#人物关系图谱",
+        "children": []
+      }
+    ],
+    "path": "/demo-0.0.1/characterline.html",
+    "pathLocale": "/",
+    "extraFields": []
+  },
+  {
     "title": "世界观总览",
     "headers": [],
     "path": "/demo-0.0.1/",
@@ -24,6 +39,13 @@ export const SEARCH_INDEX = [
     "title": "角色介绍",
     "headers": [],
     "path": "/demo-0.0.1/character/",
+    "pathLocale": "/",
+    "extraFields": []
+  },
+  {
+    "title": "",
+    "headers": [],
+    "path": "/demo-0.0.1/character/CCO/",
     "pathLocale": "/",
     "extraFields": []
   },
@@ -230,29 +252,7 @@ export const SEARCH_INDEX = [
   {
     "title": "",
     "headers": [],
-    "path": "/demo-0.0.1/character/CCO/",
-    "pathLocale": "/",
-    "extraFields": []
-  },
-  {
-    "title": "",
-    "headers": [],
     "path": "/404.html",
-    "pathLocale": "/",
-    "extraFields": []
-  },
-  {
-    "title": "",
-    "headers": [
-      {
-        "level": 2,
-        "title": "人物关系图谱",
-        "slug": "人物关系图谱",
-        "link": "#人物关系图谱",
-        "children": []
-      }
-    ],
-    "path": "/demo-0.0.1/characterline.html",
     "pathLocale": "/",
     "extraFields": []
   }
