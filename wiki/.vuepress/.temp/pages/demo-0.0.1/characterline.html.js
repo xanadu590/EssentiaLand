@@ -1,5 +1,5 @@
 import comp from "C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/characterline.html.vue"
-const data = JSON.parse("{\"path\":\"/demo-0.0.1/characterline.html\",\"title\":\"\",\"lang\":\"zh-CN\",\"frontmatter\":{\"description\":\"人物关系图谱\"},\"git\":{\"createdTime\":1759760065000,\"updatedTime\":1759825678000},\"readingTime\":{\"minutes\":0.17,\"words\":50},\"filePathRelative\":\"demo-0.0.1/characterline.md\",\"autoDesc\":true}")
+const data = JSON.parse("{\"path\":\"/demo-0.0.1/characterline.html\",\"title\":\"\",\"lang\":\"zh-CN\",\"frontmatter\":{\"description\":\"人物关系图谱\"},\"git\":{\"createdTime\":1759760065000,\"updatedTime\":1759828959000},\"readingTime\":{\"minutes\":0.16,\"words\":48},\"filePathRelative\":\"demo-0.0.1/characterline.md\",\"autoDesc\":true}")
 export { comp, data }
 
 if (import.meta.webpackHot) {

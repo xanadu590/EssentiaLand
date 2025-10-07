@@ -1,25 +1,26 @@
 <template>
+  <!-- ✅ ClientOnly 确保仅在浏览器端渲染 -->
   <ClientOnly>
     <div ref="el" class="rg-wrap" :style="wrapStyle"></div>
   </ClientOnly>
 </template>
 
 <script setup lang="ts">
-import 'vis-network/styles/vis-network.css'
 import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue'
 
+// ✅ 引入 vis-network 样式（节点、连线样式必需）
+import 'vis-network/styles/vis-network.css'
+
+/** 节点与边的类型定义 */
 type NodeItem = {
   id: string | number
   label: string
   url?: string
   group?: string
   image?: string
+  shape?: string
 }
-type EdgeItem = {
-  from: string | number
-  to: string | number
-  type?: string
-}
+type EdgeItem = { from: string | number; to: string | number; type?: string }
 
 const props = defineProps<{
   height?: number | string
@@ -30,11 +31,12 @@ const props = defineProps<{
 const el = ref<HTMLElement | null>(null)
 let net: any = null
 
-// 把高度真正应用到容器上
+/** ✅ 自动计算容器样式（支持 height 动态） */
 const wrapStyle = computed(() => {
   const h =
-    typeof props.height === 'number' ? `${props.height}px` :
-    props.height || '420px'
+    typeof props.height === 'number'
+      ? `${props.height}px`
+      : props.height || '420px'
   return {
     width: '100%',
     height: h,
@@ -45,13 +47,21 @@ const wrapStyle = computed(() => {
   } as Record<string, string>
 })
 
+/** ✅ 初始化关系图函数 */
 async function init() {
   if (!el.value) return
 
-  // ✅ 只在客户端动态加载，规避 SSR 构建差异
+  // 动态导入 vis-network
   const { Network, DataSet } = await import('vis-network/standalone')
 
-  const nodeDS = new DataSet(props.nodes ?? [])
+  // ✅ 为每个节点自动决定形状
+  const safeNodes = (props.nodes ?? []).map(n => ({
+    ...n,
+    shape: n.image ? 'circularImage' : (n.shape || 'dot'),
+  }))
+
+  // 数据集
+  const nodeDS = new DataSet(safeNodes)
   const edgeDS = new DataSet(
     (props.edges ?? []).map(e => ({
       ...e,
@@ -61,12 +71,12 @@ async function init() {
     }))
   )
 
+  // ✅ vis-network 配置项
   const options = {
     layout: { improvedLayout: true },
     physics: { enabled: true, stabilization: true },
     nodes: {
-      shape: 'circularImage',
-      image: undefined, // 个别节点会带 image
+      shape: 'dot', // 默认使用 dot，无图节点安全
       size: 36,
       borderWidth: 2,
       color: {
@@ -77,9 +87,9 @@ async function init() {
           background: 'var(--vp-c-bg-soft, #f8fafc)',
         },
       },
-      font: {
-        color: 'var(--c-text, #111)',
-      },
+      font: { color: 'var(--c-text, #111)' },
+      // ⬇️ 可选：备用图片，防止加载失败报错
+      brokenImage: '/images/fallback-avatar.png',
     },
     edges: {
       smooth: { enabled: true, type: 'dynamic' },
@@ -93,9 +103,10 @@ async function init() {
     },
   }
 
+  // ✅ 初始化网络
   net = new Network(el.value, { nodes: nodeDS, edges: edgeDS }, options)
 
-  // 点击节点 → 若有 url 则跳转
+  // ✅ 点击节点跳转
   net.on('click', (params: any) => {
     const id = params?.nodes?.[0]
     if (!id) return
@@ -104,29 +115,28 @@ async function init() {
   })
 }
 
-// 根据关系类型给边着色
+/** ✅ 关系线颜色规则 */
 function edgeColor(type?: string) {
   const map: Record<string, string> = {
-    friend: '#34c759', // 朋友 绿
-    ally:   '#2eaadc', // 盟友 蓝
-    enemy:  '#ef4444', // 敌对 红
-    family: '#a78bfa', // 家人 紫
+    friend: '#34c759', // 朋友（绿）
+    ally:   '#2eaadc', // 盟友（蓝）
+    enemy:  '#ef4444', // 敌对（红）
+    family: '#a78bfa', // 家人（紫）
   }
   return map[type || ''] || '#94a3b8'
 }
 
+/** ✅ 生命周期：初始化与销毁 */
 onMounted(async () => {
   await nextTick()
   await init()
 })
 
-// 数据变化时重绘
 watch(
   () => [props.nodes, props.edges, props.height],
   async () => {
     if (!el.value) return
-    // 直接重新初始化最稳（vis-network 更新集合也可以，这里求稳）
-    if (net && (net.destroy instanceof Function)) net.destroy()
+    if (net && typeof net.destroy === 'function') net.destroy()
     await nextTick()
     await init()
   },
@@ -134,13 +144,13 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  if (net && (net.destroy instanceof Function)) net.destroy()
+  if (net && typeof net.destroy === 'function') net.destroy()
   net = null
 })
 </script>
 
 <style scoped>
-/* 主题适配（亮/暗） */
+/* ✅ 暗色模式样式同步 */
 html[data-theme="dark"] .rg-wrap {
   background: var(--vp-c-bg-soft, #0b0f19);
   border-color: var(--c-border, #333);
