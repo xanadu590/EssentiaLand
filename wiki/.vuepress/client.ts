@@ -6,6 +6,7 @@ import AIMedia from './components/AIMedia.vue' // ← 新增：显式引入
 import WorldTimeline from './components/WorldTimeline.vue'
 import RelationCards from './components/RelationCards.vue' 
 import RelationGraph from './components/RelationGraph.vue'
+import RelatedByTag from './components/RelatedByTag.vue'
 
 export type AISetting = {
   show: boolean
@@ -42,6 +43,8 @@ export default defineClientConfig({
     app.component('RelationCards', RelationCards)          // ← 新增：全局注册
 
     app.component('RelationGraph', RelationGraph)
+    
+    app.component('RelatedByTag', RelatedByTag)
   },
 
   // 右上角悬浮的总开关

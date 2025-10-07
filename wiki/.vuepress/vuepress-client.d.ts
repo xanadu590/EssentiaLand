@@ -10,4 +10,5 @@ declare module '@vuepress/client' {
   export function useRouteLocale(): string
   export function useSiteData<T = any>(): ComputedRef<T>
   export function useSiteLocaleData<T = any>(): ComputedRef<T>
+  export function defineClientConfig(config: any): any;
 }
