@@ -45,7 +45,7 @@ export const SEARCH_INDEX = [
   {
     "title": "",
     "headers": [],
-    "path": "/demo-0.0.1/character/divineproxy/",
+    "path": "/demo-0.0.1/character/CCO/",
     "pathLocale": "/",
     "extraFields": []
   },
@@ -245,7 +245,7 @@ export const SEARCH_INDEX = [
   {
     "title": "",
     "headers": [],
-    "path": "/demo-0.0.1/character/CCO/",
+    "path": "/demo-0.0.1/character/divineproxy/",
     "pathLocale": "/",
     "extraFields": []
   },
