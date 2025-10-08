@@ -7,7 +7,7 @@
   -->
   <component
     :is="to ? 'a' : 'div'"
-    :class="['role-card', { stacked }]" 
+    :class="['role-card', { stacked }]"
     :href="to || undefined"
     :style="cardStyle"
     role="link"
@@ -119,7 +119,7 @@
             <template v-else>{{ title }}</template>
           </h2>
 
-          <ul class="meta"> <!-- 依然一行一项，跟你现在保持一致 -->
+          <ul class="meta"> <!-- 一行一项 -->
             <li v-if="alias">
               <span class="k">别名</span>
               <span class="v">
@@ -194,10 +194,10 @@ type MaybeLink = string | { text: string; href: string }
 
 /**
  * 组件 Props：
- * - 固定尺寸：width/height（默认 320×480 —— 你当前文件里的默认值我保留不动）
- * - 左侧图片尺寸：avatarWidth / avatarHeight（默认 160×120）
+ * - 固定尺寸：width/height（默认 320×480 —— 保持你的默认值不变）
+ * - 图片盒尺寸：avatarWidth / avatarHeight（默认 160×240）
  * - to：整卡点击跳转
- * - ★ 新增：stacked（默认 false），为 true 时启用“上下分段布局”
+ * - stacked：是否上下分段布局（默认 false，保留原来的左右布局）
  */
 const props = withDefaults(defineProps<{
   title: MaybeLink
@@ -213,13 +213,13 @@ const props = withDefaults(defineProps<{
   height?: number
   avatarWidth?: number
   avatarHeight?: number
-  stacked?: boolean               // ★ 新增：是否采用上下分段布局
+  stacked?: boolean
 }>(), {
-  width: 320,
-  height: 480,
-  avatarWidth: 160,
-  avatarHeight: 240,
-  stacked: false,                 // ★ 默认仍是老布局（左右两列）
+  width: 220,
+  height: 330,
+  avatarWidth: 100,
+  avatarHeight: 150,
+  stacked: false,
 })
 
 /** 小工具：判断一个值是不是 { text, href } 结构 */
@@ -233,15 +233,16 @@ const go = (href: string) => { window.location.assign(href) }
  * 把卡片尺寸 + 头像尺寸传入：
  * - 卡片尺寸走内联 style（固定宽高）
  * - 头像尺寸用 CSS 变量传给 .avatar，这样不改模板也能统一生效
+ * - ★ 新增：--avatar-pos 可以全局/局部定制裁剪重心（如 50% 35%）
  */
 const cardStyle = {
   width: `${props.width}px`,
   height: `${props.height}px`,
   '--avatar-w': `${props.avatarWidth}px`,
   '--avatar-h': `${props.avatarHeight}px`,
+  '--avatar-pos': '50% 50%', // ★ 新增：默认裁剪重心在正中（可根据需要改为 50% 35%）
 } as Record<string, string>;
 
-/** 通过解构拿到 stacked，供模板 :class 使用（也便于类型提示） */
 const { stacked } = props
 </script>
 
@@ -287,12 +288,13 @@ html[data-theme="dark"] .role-card{
   width: max-content;       /* 由头像尺寸决定宽度 */
 }
 
-/* 固定头像盒子，任何大图都会被“等比缩小”塞进来 */
+/* 固定头像盒子，任何大图都会“等比缩放 + 居中裁剪”填满 */
 .avatar{
-  width: var(--avatar-w, 120px);  /* 实际用 CSS 变量控制 */
-  height: var(--avatar-h, 120px);
-  object-fit: contain;            /* 等比缩放，不裁剪 */
-  background: #f2f3f5;            /* 占位底色 */
+  width: 100px;
+  height: 150px;
+  object-fit: cover;             /* ★ 变更：由 contain 改为 cover（先缩放后裁剪） */
+  object-position: var(--avatar-pos, 50% 50%); /* ★ 新增：裁剪重心，可全局/局部覆盖 */
+  background: #f2f3f5;           /* 占位底色 */
   border-radius: 10px;
   border: 1px solid var(--c-border, #e5e7eb);
 }
@@ -338,8 +340,9 @@ html[data-theme="dark"] .role-card{
   color: inherit;
   text-decoration: none;
 }
+
 .title a:hover{
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* 关键信息：一行一行纵向排列（保持你的现状） */
@@ -371,7 +374,7 @@ html[data-theme="dark"] .role-card{
   text-decoration: none;
 }
 .meta .v a:hover{
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* ===========================
@@ -388,7 +391,7 @@ html[data-theme="dark"] .role-card{
 .role-card.stacked .top{
   display: flex;              /* 顶部：图片 + 基本信息横排 */
   align-items: flex-start;
-  gap: 16px;
+  gap: 10px;
 }
 .role-card.stacked .basic{
   flex: 1;
@@ -404,4 +407,12 @@ html[data-theme="dark"] .role-card{
 .role-card a{
   cursor: pointer;
 }
+
+/* 全局缩小这张卡片内的字体（不会影响别的组件） */
+.role-card {
+  font-size: 0.7rem;   /* 0.9、0.875… 看效果微调 */
+}
+.title { font-size: 13px; }   /* 之前是 20px，可等比调小 */
+.meta { gap: 8px; }           /* 行距也可略缩小 */
+
 </style>
