@@ -12,3 +12,15 @@
   margin: 0 !important;
 }
 
+/* 响应式 3～4 列网格，自动换行 */
+.role-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;                 /* 卡片间距 */
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.role-grid > *{
+  flex: 0 0 auto;
+}

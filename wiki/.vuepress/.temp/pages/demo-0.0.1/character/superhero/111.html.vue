@@ -1,19 +1,45 @@
-<template><div><RoleGrid>
-  <RoleInfobox inline title="灵动骑士" image="/images/EtherealKnight/CombatSuit.png" :abilities="['风元素强化']" />
-  <RoleInfobox inline title="舒雪" image="/images/roles/shu-xue.png" :abilities="['潜入','情报']" />
-  <RoleInfobox inline title="韩桉宁" image="/images/roles/han-anning.png" :abilities="['支援']" />
-  <RoleInfobox
-  inline
-  maxWidth="360px"
-  title="灵动骑士"
-  image="/images/EtherealKnight/CombatSuit.png"
-  alias="Ether Knight"
-  faction="中域团体"
-  status="在世"
-  :abilities="['风元素强化','轻盈术（滑翔）']"
-  firstAppearance="2024-11-01"
-  link="/zh/character/ethereal-knight/"
-/>
-</RoleGrid></div></template>
+<template><div><div class="role-grid">
+  <!-- 1. 灵动骑士（简版） -->
+  <RoleCard
+    stacked
+    :width="320"
+    :height="420"
+    title="灵动骑士"
+    avatar="/images/EtherealKnight/CombatSuit.jpg"
+    :abilities="['风元素强化']"
+  />
+  <!-- 2. 舒雪 -->
+  <RoleCard
+    stacked
+    :width="320"
+    :height="420"
+    title="舒雪"
+    avatar="/images/roles/shu-xue.png"
+    :abilities="['潜入', '情报']"
+  />
+  <!-- 3. 韩桉宁 -->
+  <RoleCard
+    stacked
+    :width="320"
+    :height="420"
+    title="韩桉宁"
+    avatar="/images/roles/han-anning.png"
+    :abilities="['支援']"
+  />
+  <!-- 4. 灵动骑士（完整版，可点击跳转） -->
+  <RoleCard
+    stacked
+    :width="320"
+    :height="460"
+    title="灵动骑士"
+    avatar="/image/EtherealKnightCombatSuit.jpg"
+    alias="Ether Knight"
+    faction="中域团体"
+    status="在世"
+    :abilities="['风元素强化', '轻盈术（滑翔）']"
+    firstAppearance="2024-11-01"
+    to="/demo-0.0.1/character/superhero/character-EtherealKnight.html"
+  />
+</div></div></template>
 
 

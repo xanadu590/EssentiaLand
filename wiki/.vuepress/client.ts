@@ -6,8 +6,7 @@ import AIMedia from './components/AIMedia.vue' // ← 新增：显式引入
 import WorldTimeline from './components/WorldTimeline.vue'
 import RelationCards from './components/RelationCards.vue' 
 import RelationGraph from './components/RelationGraph.vue'
-import RoleInfobox from './components/RoleInfobox.vue'
-import RoleGrid from './components/RoleGrid.vue'
+import RoleCard from './components/RoleCard.vue'
 
 export type AISetting = {
   show: boolean
@@ -45,9 +44,7 @@ export default defineClientConfig({
 
     app.component('RelationGraph', RelationGraph)
 
-    app.component("RoleInfobox", RoleInfobox)
-
-    app.component("RoleGrid", RoleGrid)
+    app.component("RoleCard", RoleCard)
     
   },
 
