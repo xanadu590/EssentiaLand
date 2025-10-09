@@ -4,13 +4,15 @@
   "version": "0.0.1",
   "license": "MIT",
   "type": "module",
+  
   "scripts": {
-    "docs:gen-index": "node wiki/.vuepress/scripts/build-random-index.js",
-    "docs:build": "node wiki/.vuepress/scripts/build-random-index.js && vuepress-vite build wiki",
-    "docs:dev": "node wiki/.vuepress/scripts/build-random-index.js && vuepress-vite dev wiki",
-    "docs:clean-dev": "vuepress-vite dev wiki --clean-cache",
-    "docs:update-package": "pnpm dlx vp-update"
-  },
+  "docs:gen-index": "node wiki/.vuepress/scripts/build-random-index.js",
+  "docs:build": "node wiki/.vuepress/scripts/build-random-index.js && vuepress-vite build wiki",
+  "docs:dev": "node wiki/.vuepress/scripts/build-random-index.js && vuepress-vite dev wiki",
+  "docs:clean-dev": "vuepress-vite dev wiki --clean-cache",
+  "docs:update-package": "pnpm dlx vp-update"
+},
+
   "devDependencies": {
     "@vuepress/bundler-vite": "2.0.0-rc.25",
     "@vuepress/client": "2.0.0-rc.25",
