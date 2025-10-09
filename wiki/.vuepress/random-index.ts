@@ -1,6 +1,6 @@
 // .vuepress/plugins/random-index.ts
 import type { Plugin } from 'vuepress'
-import { fs, path } from '@vuepress/utils'
+import { fs, path, logger } from '@vuepress/utils'
 
 export const randomIndexPlugin = (): Plugin => ({
   name: 'random-index-plugin',

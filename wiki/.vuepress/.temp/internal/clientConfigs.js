@@ -17,9 +17,10 @@ import * as clientConfig15 from 'C:/Users/super/ZenithWorld/wiki/.vuepress/.temp
 import * as clientConfig16 from 'C:/Users/super/ZenithWorld/node_modules/.pnpm/@vuepress+plugin-active-hea_28aeb29368d7d2aab5d9523060c27509/node_modules/@vuepress/plugin-active-header-links/lib/client/config.js'
 import * as clientConfig17 from 'C:/Users/super/ZenithWorld/node_modules/.pnpm/@vuepress+plugin-catalog@2._6135d39c6c2402b94c97522cf482bc58/node_modules/@vuepress/plugin-catalog/lib/client/config.js'
 import * as clientConfig18 from 'C:/Users/super/ZenithWorld/node_modules/.pnpm/@vuepress+plugin-nprogress@_5e3fad84a044f6957bffecf86a899f4e/node_modules/@vuepress/plugin-nprogress/lib/client/config.js'
-import * as clientConfig19 from 'C:/Users/super/ZenithWorld/node_modules/.pnpm/@vuepress+plugin-redirect@2_2e70c2ed108189e8c7fd87685c8e64a4/node_modules/@vuepress/plugin-redirect/lib/client/config.js'
-import * as clientConfig20 from 'C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/theme-hope/config.js'
-import * as clientConfig21 from 'C:/Users/super/ZenithWorld/wiki/.vuepress/client.ts'
+import * as clientConfig19 from 'C:/Users/super/ZenithWorld/node_modules/.pnpm/@vuepress+plugin-slimsearch_b86a6d134655859cafd5c80506ff9f39/node_modules/@vuepress/plugin-slimsearch/lib/client/config.js'
+import * as clientConfig20 from 'C:/Users/super/ZenithWorld/node_modules/.pnpm/@vuepress+plugin-redirect@2_2e70c2ed108189e8c7fd87685c8e64a4/node_modules/@vuepress/plugin-redirect/lib/client/config.js'
+import * as clientConfig21 from 'C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/theme-hope/config.js'
+import * as clientConfig22 from 'C:/Users/super/ZenithWorld/wiki/.vuepress/client.ts'
 
 export const clientConfigs = [
   clientConfig0,
@@ -44,4 +45,5 @@ export const clientConfigs = [
   clientConfig19,
   clientConfig20,
   clientConfig21,
+  clientConfig22,
 ].map((m) => m.default).filter(Boolean)
