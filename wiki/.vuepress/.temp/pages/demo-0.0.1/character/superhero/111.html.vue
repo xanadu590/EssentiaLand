@@ -37,6 +37,6 @@
     to="/demo-0.0.1/character/superhero/character-EtherealKnight.html"
   />
 </div>
-<RandomArticleCard /></div></template>
+<RandomCard /></div></template>
 
 

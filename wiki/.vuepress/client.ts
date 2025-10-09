@@ -8,7 +8,7 @@ import RelationCards from './components/RelationCards.vue'
 import RelationGraph from './components/RelationGraph.vue'
 import RoleCard from './components/RoleCard.vue'
 import RandomCard from './components/RandomCard.vue'
-import RandomCardBase from './components/RandomCardBase.vue'
+import RandomSidebar from './components/RandomSidebar.vue'
 
 export type AISetting = {
   show: boolean
@@ -50,7 +50,7 @@ export default defineClientConfig({
 
     app.component("RandomCard", RandomCard)
 
-    app.component("RandomCardBase", RandomCardBase)
+    app.component("RandomSidebar", RandomSidebar)
     
   },
 
