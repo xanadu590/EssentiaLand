@@ -7,7 +7,8 @@ import WorldTimeline from './components/WorldTimeline.vue'
 import RelationCards from './components/RelationCards.vue' 
 import RelationGraph from './components/RelationGraph.vue'
 import RoleCard from './components/RoleCard.vue'
-import RandomArticleCard from './components/RandomArticleCard.vue'
+import RandomCard from './components/RandomCard.vue'
+import RandomCardBase from './components/RandomCardBase.vue'
 
 export type AISetting = {
   show: boolean
@@ -47,7 +48,9 @@ export default defineClientConfig({
 
     app.component("RoleCard", RoleCard)
 
-    app.component("RandomArticleCard", RandomArticleCard)
+    app.component("RandomCard", RandomCard)
+
+    app.component("RandomCardBase", RandomCardBase)
     
   },
 
