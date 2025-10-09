@@ -7,7 +7,6 @@ import WorldTimeline from './components/WorldTimeline.vue'
 import RelationCards from './components/RelationCards.vue' 
 import RelationGraph from './components/RelationGraph.vue'
 import RoleCard from './components/RoleCard.vue'
-import RandomCard from './components/RandomCard.vue'
 
 export type AISetting = {
   show: boolean
@@ -47,7 +46,6 @@ export default defineClientConfig({
 
     app.component("RoleCard", RoleCard)
     
-    app.component("RandomCard", RandomCard)
   },
 
   // 右上角悬浮的总开关

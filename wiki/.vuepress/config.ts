@@ -4,8 +4,6 @@ import theme from "./theme.js";
 
 import { viteBundler } from '@vuepress/bundler-vite'
 
-import { randomIndexPlugin } from "./random-index.js";
-
 export default defineUserConfig({
   base: "/",
 
@@ -23,9 +21,7 @@ export default defineUserConfig({
   },
 
   theme,
-    plugins: [
-      randomIndexPlugin(),
-    ],
+  
     bundler: viteBundler(), // ← 指定打包器
 
   // Enable it with pwa
