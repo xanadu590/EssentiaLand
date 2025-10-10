@@ -1,5 +1,5 @@
 import comp from "C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/8.html.vue"
-const data = JSON.parse("{\"path\":\"/demo-0.0.1/character/superhero/8.html\",\"title\":\"[6][WizardHope]\",\"lang\":\"zh-CN\",\"frontmatter\":{\"sidebar\":false,\"description\":\"[6][WizardHope] 基本信息 姓名：\"},\"git\":{},\"readingTime\":{\"minutes\":0.03,\"words\":10},\"filePathRelative\":\"demo-0.0.1/character/superhero/8.md\",\"autoDesc\":true}")
+const data = JSON.parse("{\"path\":\"/demo-0.0.1/character/superhero/8.html\",\"title\":\"[8][WizardHope]\",\"lang\":\"zh-CN\",\"frontmatter\":{\"sidebar\":false,\"description\":\"[8][WizardHope] 基本信息 姓名：\"},\"git\":{\"createdTime\":1759644953000,\"updatedTime\":1760104041000},\"readingTime\":{\"minutes\":0.03,\"words\":10},\"filePathRelative\":\"demo-0.0.1/character/superhero/8.md\",\"autoDesc\":true}")
 export { comp, data }
 
 if (import.meta.webpackHot) {
