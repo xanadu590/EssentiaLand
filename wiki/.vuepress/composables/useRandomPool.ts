@@ -2,6 +2,10 @@
 import { ref } from 'vue'
 import { withBase } from '@vuepress/client'
 
+/** 调试开关（排查时设为 true，上线可设为 false） */
+const DEBUG = true
+const TAG = '[RandomPool]'
+
 export type RandomItem = {
   href: string
   title?: string
@@ -18,24 +22,31 @@ export function useRandomPool() {
 
     try {
       const url = withBase('data/random-index.json')
+      DEBUG && console.info(TAG, 'fetch:', url)
       const res = await fetch(url, { cache: 'force-cache' })
       if (!res.ok) throw new Error(`fetch ${url} failed: ${res.status}`)
       const json = await res.json()
       pool.value = normalizeIndex(json)
+      DEBUG && console.info(TAG, 'normalizeIndex ->', pool.value.length)
     } catch (err) {
-      console.warn('[RandomPool] load json failed, fallback to document scan.', err)
+      console.warn(`${TAG} load json failed, fallback to document scan.`, err)
       pool.value = collectFromDocument()
+      DEBUG && console.info(TAG, 'collectFromDocument ->', pool.value.length)
     }
 
     // 统一去重
+    const beforeUnique = pool.value.length
     pool.value = uniqueByHref(pool.value)
+    DEBUG && console.info(TAG, `uniqueByHref: ${beforeUnique} -> ${pool.value.length}`)
 
     // 当前页 & 顶层页 一并排除
     const cur = normalize(location.pathname)
+    const beforeFilter = pool.value.length
     pool.value = pool.value.filter(i => {
       const p = normalize(i.href)
       return p !== cur && !isTopPage(p)
     })
+    DEBUG && console.info(TAG, `filter current/top: ${beforeFilter} -> ${pool.value.length} (cur=${cur})`)
 
     loaded.value = true
   }
@@ -53,6 +64,7 @@ export function useRandomPool() {
         out.push(item)
       }
     }
+    DEBUG && console.debug(TAG, `sample(${n}) -> ${out.length}`)
     return out
   }
 
@@ -71,8 +83,11 @@ function normalizeIndex(json: any): RandomItem[] {
     const raw = String(i?.path ?? i?.link ?? '')
     if (!raw) return null
     const href = normalize(raw)
-    // 仅收 .html，且排除顶层页
-    if (!/\.html$/i.test(href) || isTopPage(href) || href.startsWith('http')) return null
+    // 仅收 .html，且排除顶层页与外链
+    if (!/\.html$/i.test(href) || isTopPage(href) || href.startsWith('http')) {
+      DEBUG && console.debug(TAG, 'skip:', { raw, href })
+      return null
+    }
     return {
       href,
       title: (i?.title ?? '').trim(),
@@ -86,6 +101,7 @@ function normalizeIndex(json: any): RandomItem[] {
     ? (json as any[]).map(toItem).filter(Boolean)
     : []
 
+  DEBUG && console.info(TAG, 'normalizeIndex list =', list.length)
   return uniqueByHref(list as RandomItem[])
 }
 
@@ -99,6 +115,7 @@ function collectFromDocument(): RandomItem[] {
     .filter(p => /\.html$/i.test(p) && !p.startsWith('http') && !isTopPage(p))
     .map(p => ({ href: p, title: '', excerpt: '' }))
 
+  DEBUG && console.info(TAG, 'collectFromDocument size =', items.length)
   return uniqueByHref(items)
 }
 
@@ -123,9 +140,12 @@ function ensureLeadingSlash(p: string) {
 
 /**
  * 标准化为“站内路径”：
- * - 去域名，仅保留 pathname
- * - 去掉已知的 base 前缀（运行时 base 和 '/ZenithWorld/' 兼容）
- * - 确保以 /
+ * - 只保留 pathname（去域名）
+ * - 剥离已知 base 前缀：
+ *    1) 运行时 base：withBase('/')
+ *    2) 历史：'/ZenithWorld/'
+ *    3) 自动识别：当前 URL 的首段若形如 'demo-*' 或 'v*'，视作 base（如 '/demo-0.0.1/'、'/v1/'）
+ * - 最终确保以 '/' 开头
  */
 function normalize(href: string): string {
   let path = href
@@ -134,11 +154,33 @@ function normalize(href: string): string {
   } catch {}
   path = ensureLeadingSlash(path)
 
+  // 1) 运行时 base（如 '/' 或 '/ZenithWorld/'）
   const runtimeBase = normalizeBase(withBase('/').replace(location.origin, ''))
-  const knownBases = new Set<string>([runtimeBase, '/ZenithWorld/'])
+
+  // 2) 自动识别当前 URL 的第一段作为潜在 base（demo-*/v*）
+  const autoBases: string[] = []
+  const seg = location.pathname.match(/^\/([^/]+)\//)
+  if (seg) {
+    const first = seg[1]
+    if (/^(demo-[\w.-]+|v[\w.-]+)$/i.test(first)) {
+      autoBases.push(`/${first}/`)
+    }
+  }
+
+  // 3) 历史手动列举
+  const manualBases = ['/ZenithWorld/']
+
+  // 汇总并按长度降序（避免短前缀先剥导致误差）
+  const knownBases = [runtimeBase, ...autoBases, ...manualBases]
+    .filter(Boolean)
+    .map(normalizeBase)
+    .sort((a, b) => b.length - a.length)
+
   for (const b of knownBases) {
     if (b !== '/' && path.startsWith(b)) {
+      const old = path
       path = ensureLeadingSlash(path.slice(b.length))
+      DEBUG && console.debug(TAG, 'strip base:', b, '=>', old, '->', path)
       break
     }
   }
