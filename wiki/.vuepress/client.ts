@@ -21,6 +21,13 @@ const KEY = 'showAIImages'
 export const AI_INJECT_KEY = Symbol('AISetting')
 
 export default defineClientConfig({
+
+   layouts: {
+    // 把主题默认 Layout 映射到你这份，从而全站启用你的插槽覆盖
+    Layouts,
+    // 如需自定义 404，可再加 NotFound: NotFoundLayout
+  },
+
   enhance({ app }) {
     const setting = reactive<AISetting>({
       show:
@@ -53,8 +60,6 @@ export default defineClientConfig({
     app.component("RandomCard", RandomCard)
 
     app.component("RandomSidebar", RandomSidebar)
-
-    app.component("Layouts", Layouts)
     
   },
 
