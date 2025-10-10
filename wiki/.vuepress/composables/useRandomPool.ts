@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { withBase } from '@vuepress/client'
 
-/** 调试开关（排查时设为 true，上线可设为 false） */
+/** 调试开关（排查用；上线可设为 false） */
 const DEBUG = true
 const TAG = '[RandomPool]'
 
@@ -12,16 +12,50 @@ export type RandomItem = {
   excerpt?: string
 }
 
+/**
+ * 统一：从多个可能的 URL 拉取 random-index.json（带版本参数）
+ * - 加上 ?v= 构建版本，强制绕过浏览器/CDN 缓存
+ * - “开发”通过 hostname 判断（不依赖 env），每次请求都加时间戳
+ * - “生产”尽量用 <meta> 注入的 build-rev / build-time；没有则回退为时间戳
+ */
+function makeVersionedUrl(raw: string): string {
+  // 1) 判断是否本地开发：不依赖 env，仅看 hostname
+  const host = location.hostname
+  const isLocal =
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host.endsWith('.local')
+
+  // 2) 获取一个“构建版本号”
+  //    - 优先从 <meta name="build-rev" content="..."> 或 <meta name="build-time"> 获取（可选）
+  //    - 否则回退到时间戳
+  const metaRev = document.querySelector('meta[name="build-rev"]') as HTMLMetaElement | null
+  const metaTime = document.querySelector('meta[name="build-time"]') as HTMLMetaElement | null
+  const buildVersion = (metaRev?.content || metaTime?.content || String(Date.now())).trim()
+
+  // 3) DEV：每次都用 Date.now()；PROD：用构建版本（稳定，部署即更新）
+  const ver = isLocal ? String(Date.now()) : buildVersion
+
+  // 4) 安全地把 ?v= 挂上去
+  try {
+    const u = new URL(raw, location.origin)
+    u.searchParams.set('v', ver)
+    return u.pathname + u.search
+  } catch {
+    const sep = raw.includes('?') ? '&' : '?'
+    return `${raw}${sep}v=${ver}`
+  }
+}
+
 export function useRandomPool() {
   const pool = ref<RandomItem[]>([])
   const loaded = ref(false)
 
   /**
-   * 尝试按多个候选 URL 依次拉取 JSON。
-   * 典型候选：
-   *   1) withBase('data/random-index.json')       —— 受 base 影响的路径（如 /demo-0.0.1/...）
-   *   2) '/data/random-index.json'               —— 站点根路径（dev 场景常见）
-   *   3) 去掉 base 后的路径（当 withBase 输出包含历史前缀时，兼容打包产物）
+   * 依次尝试多个候选 URL（都带版本参数），哪个能拿到就用哪个
+   * - withBase('data/random-index.json')          受 base 影响的路径
+   * - '/data/random-index.json'                   站点根路径
+   * - 自动剥离第一段 base（如 /demo-0.0.1/ → /）
    */
   const tryFetch = async <T = any>(candidates: string[]): Promise<T | null> => {
     for (const url of candidates) {
@@ -46,18 +80,18 @@ export function useRandomPool() {
     loaded.value = false
     pool.value = []
 
-    // 组织候选 URL
-    const baseUrl = withBase('data/random-index.json')
+    // A) 组织候选 URL，并统一加 ?v= 版本参数（关键改动①）
+    const baseUrl = makeVersionedUrl(withBase('data/random-index.json'))
+
     // 去掉运行时 base 的简易版本（例如把 /demo-0.0.1/data/random-index.json → /data/random-index.json）
     const stripped = (() => {
       try {
         const u = new URL(baseUrl, location.origin)
-        // 当前路径首段（可能是 demo-* 或 v*）
         const seg = u.pathname.match(/^\/([^/]+)\/(.*)$/)
         if (seg) {
           const first = seg[1]
           if (/^(demo-[\w.-]+|v[\w.-]+)$/i.test(first)) {
-            return `/${seg[2]}` // 去掉第一段
+            return makeVersionedUrl(`/${seg[2]}`) // 去掉第一段
           }
         }
       } catch {}
@@ -66,36 +100,40 @@ export function useRandomPool() {
 
     const candidates = Array.from(
       new Set([
-        baseUrl,                // 受 base 影响版本
-        '/data/random-index.json', // 站点根版本
-        stripped ?? undefined,  // 自动去掉 base 的版本（如有）
+        baseUrl,                                 // 受 base 影响 + v
+        makeVersionedUrl('/data/random-index.json'), // 站点根 + v
+        stripped ?? undefined,                   // 自动剥 base + v
       ].filter(Boolean) as string[])
     )
 
-    // 1) 先尝试按候选地址依次拉取
+    // B) 先尝试从 JSON 读全站索引
     const json = await tryFetch<any>(candidates)
 
     if (json) {
       pool.value = normalizeIndex(json)
       DEBUG && console.info(TAG, 'normalizeIndex ->', pool.value.length)
     } else {
-      // 2) 全部失败：回退扫描页面链接
+      // C) 全部失败：兜底扫描页面链接
       console.warn(`${TAG} all fetch candidates failed, fallback to document scan.`)
+
+      // 关键改动②：等两帧，确保页面主要内容渲染完再扫，避免“漏抓”
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+
       pool.value = collectFromDocument()
       DEBUG && console.info(TAG, 'collectFromDocument ->', pool.value.length)
     }
 
-    // 统一去重
+    // D) 去重
     const beforeUnique = pool.value.length
     pool.value = uniqueByHref(pool.value)
     DEBUG && console.info(TAG, `uniqueByHref: ${beforeUnique} -> ${pool.value.length}`)
 
-    // 当前页 & 顶层页 一并排除
+    // E) 排除当前页 / 顶层页
     const cur = normalize(location.pathname)
     const beforeFilter = pool.value.length
     pool.value = pool.value.filter(i => {
       const p = normalize(i.href)
-      // 只排除真正同页面；避免因为 base 导致的误判
+      // 只排除真正同页面；避免因为 base 的不同表示而误判
       return !isTopPage(p) && p !== cur && !location.pathname.endsWith(p)
     })
     DEBUG && console.info(TAG, `filter current/top: ${beforeFilter} -> ${pool.value.length} (cur=${cur})`)
@@ -103,6 +141,7 @@ export function useRandomPool() {
     loaded.value = true
   }
 
+  /** 从池中随机抽取 n 条（不放回、不重复） */
   const sample = (n: number): RandomItem[] => {
     const seen = new Set<string>()
     const arr = pool.value.slice()
@@ -120,14 +159,15 @@ export function useRandomPool() {
     return out
   }
 
+  /** 把站内 path 变为最终可跳转的绝对地址（自动加 base） */
   const resolveLink = (p: string) => withBase(ensureLeadingSlash(p))
 
   return { pool, loaded, load, sample, resolveLink }
 }
 
-/* ================= 工具函数（原样保留，少量注释优化） ================ */
+/* ================= 工具函数（保持原逻辑，补充注释） ================ */
 
-/** 解析 random-index.json 为 RandomItem[]（兼容两种结构），并排除顶层页/外链/非 .html */
+/** 解析 random-index.json 为 RandomItem[]（兼容 {pages:[]} 或数组），并排除顶层页/外链/非 .html */
 function normalizeIndex(json: any): RandomItem[] {
   if (!json) return []
 
