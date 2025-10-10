@@ -4,15 +4,14 @@
     <!-- 有数据时渲染推荐列表 -->
     <aside
       class="random-sidebar"
-      :class="{ sticky }"
+      :class="{ sticky, dock: dockRight }"
       v-if="ready && items.length"
       role="complementary"
       aria-label="随机文章推荐"
     >
-      <div class="sb-title">随机推荐</div>
+      <div class="sb-title">也许你爱看：</div>
 
       <ul class="sb-list">
-        <!-- 遍历推荐条目 -->
         <li
           v-for="it in items"
           :key="it.href"
@@ -32,19 +31,13 @@
         </li>
       </ul>
 
-      <!-- 换一批按钮 -->
-      <button
-        class="sb-refresh"
-        @click="refresh"
-        aria-label="换一批"
-        title="换一批"
-      >
+      <button class="sb-refresh" @click="refresh" aria-label="换一批" title="换一批">
         换一批
       </button>
     </aside>
 
-    <!-- 空态（首次加载失败或无推荐） -->
-    <aside v-else class="random-sidebar empty" :class="{ sticky }">
+    <!-- 空态 -->
+    <aside v-else class="random-sidebar empty" :class="{ sticky, dock: dockRight }">
       <div class="sb-title">随机推荐</div>
       <div class="sb-empty">
         暂无推荐
@@ -55,81 +48,57 @@
 </template>
 
 <script setup lang="ts">
-/**
- * 右侧“随机推荐”组件
- * - 从 useRandomPool 获取随机池数据
- * - 展示 N 条随机推荐
- * - 可点击“换一批”刷新
- * - 自动排除当前页
- */
 import { ref, onMounted } from 'vue'
 import { useRandomPool, type RandomItem } from '../composables/useRandomPool'
 
-/** 可传入参数：条数 count、是否吸顶 sticky */
+/** 可传入参数：条数 count、是否吸顶 sticky、是否右侧停靠 dockRight */
 const props = withDefaults(
   defineProps<{
-    /** 展示条数 */
     count?: number
-    /** 是否吸顶（跟随滚动固定在视口顶部） */
     sticky?: boolean
+    dockRight?: boolean   // ★ 新增
   }>(),
   {
-    count: 6,
+    count: 6,             // ★ 默认展示 6 条 ⇒ 在 2 列布局下正好是“三排”
     sticky: true,
+    dockRight: true,      // ★ 默认启用右侧停靠
   },
 )
 
-/** 组件内部状态 */
-const ready = ref(false)               // 是否已加载完成
-const items = ref<RandomItem[]>([])    // 当前展示的随机推荐列表
-
-/** 从随机池中取方法 */
+const ready = ref(false)
+const items = ref<RandomItem[]>([])
 const { load, sample, resolveLink } = useRandomPool()
 
-/**
- * 刷新推荐列表：
- * - 首次调用时会加载 random-index.json；
- * - 后续调用仅重新抽样，不重复加载。
- */
 const refresh = async () => {
   if (!ready.value) {
     await load()
     ready.value = true
   }
-  // 每次随机抽样 count 条（至少 1 条）
   items.value = sample(Math.max(1, props.count))
 }
 
-/**
- * 跳转函数：
- * - 使用 resolveLink() 自动添加 base；
- * - 确保在不同 base 下（如 / 或 /ZenithWorld/）都能正确跳转。
- */
 const go = (it: RandomItem) => {
   window.location.assign(resolveLink(it.href))
 }
 
-/** 根据路径提取文件名（无标题时兜底用） */
 function nameFromPath(p: string) {
   const m = p.match(/\/([^/]+)\.html$/)
   return m ? decodeURIComponent(m[1]) : p
 }
-
-/** 生成摘要文本（优先 excerpt → title → 路径名） */
 function brief(i: RandomItem) {
   if (i.excerpt && i.excerpt.trim()) return i.excerpt.trim()
   if (i.title && i.title.trim()) return i.title.trim()
   return nameFromPath(i.href)
 }
 
-/** 组件挂载后立即加载并刷新 */
 onMounted(refresh)
+
+// ★ 暴露给模板使用
+const dockRight = props.dockRight
 </script>
 
 <style scoped>
-/* ========= 外观与布局 ========= */
-
-/* 右侧推荐栏主体 */
+/* ========= 外观与布局（原样） ========= */
 .random-sidebar {
   width: 100%;
   box-sizing: border-box;
@@ -140,10 +109,52 @@ onMounted(refresh)
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
-/* 吸顶模式：常用于右侧固定推荐栏 */
 .random-sidebar.sticky {
   position: sticky;
-  top: 84px; /* 按你的导航栏高度微调 */
+  top: 84px;
+}
+
+/* ========= ★ 新增：右侧停靠样式（与原逻辑一致，仅用于把侧栏放入右侧留白） =========
+   - 仅桌面端启用
+   - 计算方式：
+     内容最大宽度记为 --zw-content (默认 780px；与主题差不多，你可按站点实际调)
+     右侧留白 = (100vw - --zw-content) / 2
+     我们把侧栏放在内容区右边，再右移 24px 作为内容与侧栏的间距
+*/
+@media (min-width: 1200px) {
+  .random-sidebar.dock {
+    position: fixed;      /* 固定在视口，不挤正文 */
+    top: 84px;
+    width: var(--rs-width, 300px);  /* 侧栏宽度，可在使用处通过 style 覆盖 */
+
+    /* 内容区宽度（按你的站点调，常见 740~820）*/
+    --zw-content: var(--content-width, 780px);
+
+    /* 放到“内容区右侧 + 24px” */
+    left: calc(
+      (100vw - var(--zw-content)) / 2 + var(--zw-content) + 100px
+    );
+
+    /* 安全边距，避免过窄屏幕时溢出到右边 */
+    right: 16px;
+    max-width: min(
+      var(--rs-width, 300px),
+      calc(100vw - 16px - ((100vw - var(--zw-content)) / 2 + var(--zw-content) + 24px))
+    );
+  }
+
+  /* 页面正文可能 overflow: hidden；这里确保侧栏固定时可见 */
+  :global(.theme-container),
+  :global(.page) {
+    overflow: visible;
+  }
+}
+
+/* 小屏隐藏（原样） */
+@media (max-width: 1024px) {
+  .random-sidebar {
+    display: none;
+  }
 }
 
 /* 标题 */
@@ -154,16 +165,21 @@ onMounted(refresh)
   color: var(--c-text, #111);
 }
 
-/* 列表 */
+/* ========= ★ 列表区域：改为 2 列网格 =========
+   - grid-template-columns: 2 列平均分
+   - 默认 props.count = 6 ⇒ 3 行 × 2 列（正好三排）
+*/
 .sb-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
   gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* ★ 关键：两列 */
+  /* 如需更紧凑，可在使用处把 --rs-width 调大（例如 380~460px） */
 }
 
-/* 每条推荐 */
+/* 每条推荐卡片 */
 .sb-item {
   border: 1px solid var(--c-border, #e5e7eb);
   border-radius: 10px;
@@ -171,6 +187,7 @@ onMounted(refresh)
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
   background: var(--vp-c-bg-soft, var(--c-bg, #fff));
+  min-height: 130px; /* ★ 给卡片一个最小高度，保证两列对齐更整齐；可按需调整 */
 }
 .sb-item:hover {
   transform: translateY(-1px);
@@ -181,7 +198,7 @@ onMounted(refresh)
 /* 推荐标题 */
 .sb-item-title {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--c-text, #111);
   white-space: nowrap;
   overflow: hidden;
@@ -191,17 +208,19 @@ onMounted(refresh)
 
 /* 推荐摘要 */
 .sb-item-excerpt {
-  font-size: 13px;
+  font-size: 10px;
   line-height: 1.55;
   color: var(--c-text-light, #65758b);
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* 最多两行 */
+  -webkit-line-clamp: 2;  /* 最多两行 */
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-clamp: 2;
 }
 
-/* 刷新按钮 */
+/* ========= ★ “换一批”按钮横跨两列 =========
+   - 在上面的 Grid 中，让按钮占满整行，看起来更对称
+*/
 .sb-refresh {
   width: 100%;
   margin-top: 10px;
@@ -211,9 +230,10 @@ onMounted(refresh)
   padding: 8px 10px;
   border-radius: 10px;
   cursor: pointer;
+  grid-column: 1 / -1; /* ★ 关键：跨两列 */
 }
 
-/* ========= 暗色模式 ========= */
+/* 暗色 */
 html[data-theme='dark'] .random-sidebar,
 html[data-theme='dark'] .sb-item,
 html[data-theme='dark'] .sb-refresh {
@@ -225,14 +245,7 @@ html[data-theme='dark'] .sb-item-excerpt {
   color: #b4bdc6;
 }
 
-/* ========= 小屏隐藏（按需调整） ========= */
-@media (max-width: 1024px) {
-  .random-sidebar {
-    display: none;
-  }
-}
-
-/* ========= 空态样式 ========= */
+/* 空态样式 */
 .random-sidebar.empty .sb-empty {
   font-size: 13px;
   color: var(--c-text-light, #65758b);

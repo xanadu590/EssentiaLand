@@ -72,7 +72,7 @@ isOriginal: true
   { "name":"韩梓宁", "role":"朋友", "avatar":"/images/EtherealKnightCombatSuit.jpg", "link":"/demo-0.0.1/character/superhero/character-Scourge.md" }
 ]' />
 
-## 人物关系图谱
+## 人物关系图谱aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
 <ClientOnly>
   <RelationGraph

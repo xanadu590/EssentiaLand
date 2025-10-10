@@ -24,3 +24,10 @@
 .role-grid > *{
   flex: 0 0 auto;
 }
+
+.page-catalog,
+.page-toc,
+.vp-toc {  /* theme-hope、默认主题、或自定义目录类名兼容写法 */
+  max-width: 18px; /* ← 原本大约 240~260，可缩窄 */
+  font-size: 14px;  /* 可顺便缩小字号 */
+}

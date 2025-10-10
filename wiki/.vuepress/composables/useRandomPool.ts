@@ -58,10 +58,19 @@ export function useRandomPool() {
    * - 自动剥离第一段 base（如 /demo-0.0.1/ → /）
    */
   const tryFetch = async <T = any>(candidates: string[]): Promise<T | null> => {
+    // 🔧 仅此处新增：按环境切换缓存策略（开发永远不缓存；生产保持 force-cache 由 ?v= 控制失效）
+    const host = location.hostname
+    const isLocal =
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host.endsWith('.local')
+    const isDev = DEBUG || isLocal
+    const cacheMode: RequestCache = isDev ? 'no-store' : 'force-cache'
+
     for (const url of candidates) {
       try {
         DEBUG && console.info(TAG, 'fetch try:', url)
-        const res = await fetch(url, { cache: 'force-cache' })
+        const res = await fetch(url, { cache: cacheMode }) // ← 改这里
         if (!res.ok) {
           DEBUG && console.warn(TAG, `fetch fail ${res.status}:`, url)
           continue
@@ -100,9 +109,9 @@ export function useRandomPool() {
 
     const candidates = Array.from(
       new Set([
-        baseUrl,                                 // 受 base 影响 + v
-        makeVersionedUrl('/data/random-index.json'), // 站点根 + v
-        stripped ?? undefined,                   // 自动剥 base + v
+        baseUrl,                                      // 受 base 影响 + v
+        makeVersionedUrl('/data/random-index.json'),  // 站点根 + v
+        stripped ?? undefined,                        // 自动剥 base + v
       ].filter(Boolean) as string[])
     )
 
