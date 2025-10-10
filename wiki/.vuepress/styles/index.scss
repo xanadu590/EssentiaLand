@@ -25,9 +25,24 @@
   flex: 0 0 auto;
 }
 
-.page-catalog,
-.page-toc,
-.vp-toc {  /* theme-hope、默认主题、或自定义目录类名兼容写法 */
-  max-width: 18px; /* ← 原本大约 240~260，可缩窄 */
-  font-size: 14px;  /* 可顺便缩小字号 */
+/* ========= 目录栏（此页内容）宽度控制 ========= */
+
+/* Theme Hope 的目录区域类名一般是 .vp-toc 或 .page-toc */
+.vp-toc,
+.page-toc {
+  max-width: 160px !important; /* ← 默认大约 260px，改成更窄 */
+  flex: 0 0 160px !important;  /* 固定宽度，强制缩短 */
+  overflow: hidden;            /* 超出隐藏 */
+  text-overflow: ellipsis;     /* 超出时用省略号 */
+  white-space: nowrap;         /* 不换行（如果要自动换行可删掉） */
+}
+
+/* 目录里的每个标题链接（左边这一列的文字） */
+.vp-toc .toc-link,
+.page-toc .toc-link {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px; /* ← 决定文字开始省略的长度，可再减小，例如 120px */
 }
