@@ -10,7 +10,7 @@
       <div class="card-title">{{ p.name }}</div>
 
       <!-- 第 2 行：左图 -->
-      <img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
+      < img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
 
       <!-- 第 2 行：右侧信息 -->
       <div class="card-info">
@@ -58,11 +58,11 @@ const data = computed<RelationItem[]>(() => {
   return (fm.value?.relations || []) as RelationItem[]
 })
 
-/** 图片与链接统一加 base 前缀 */
+/** 图片地址统一加 base 前缀 */
 const srcUrl = (u?: string) => (!u ? '' : u.startsWith('/') ? withBase(u) : u)
 </script>
 
-<style scoped>
+<style>
 /* =================== 外层网格 =================== */
 .relation-cards {
   display: grid;
