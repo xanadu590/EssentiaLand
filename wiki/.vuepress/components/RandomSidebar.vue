@@ -1,43 +1,60 @@
 <!-- wiki/.vuepress/components/RandomSidebar.vue -->
 <template>
   <ClientOnly>
-    <!-- 有数据时渲染推荐列表 -->
     <aside
+      ref="dockEl"
       class="random-sidebar"
       :class="{ sticky, dock: dockRight }"
       v-if="ready && items.length"
       role="complementary"
       aria-label="随机文章推荐"
     >
-      <div class="sb-title">也许你爱看：</div>
+      <div class="sb-scale-wrap">
+        <!-- 标题+按钮移到 sb-scale-wrap 内部，便于相对网格定位 -->
+        <div class="sb-header" ref="titleEl">
+          <div class="sb-title">也许你爱看：</div>
+          <button
+            class="sb-refresh sb-refresh--inline"
+            @click="refresh"
+            aria-label="换一批"
+            title="换一批"
+          >
+            换一批
+          </button>
+        </div>
 
-      <ul class="sb-list">
-        <li
-          v-for="it in items"
-          :key="it.href"
-          class="sb-item"
-          @click="go(it)"
-          @keydown.enter.prevent="go(it)"
-          role="link"
-          tabindex="0"
-          :title="it.title || it.href"
-        >
-          <div class="sb-item-title">
-            {{ it.title || nameFromPath(it.href) }}
-          </div>
-          <div class="sb-item-excerpt">
-            {{ it.excerpt || brief(it) }}
-          </div>
-        </li>
-      </ul>
-
-      <button class="sb-refresh" @click="refresh" aria-label="换一批" title="换一批">
-        换一批
-      </button>
+        <ul class="sb-list" ref="listEl">
+          <li
+            v-for="it in itemsShown"
+            :key="it.href"
+            class="sb-item"
+            @click="go(it)"
+            @keydown.enter.prevent="go(it)"
+            role="link"
+            tabindex="0"
+            :title="it.title || it.href"
+          >
+            <div class="sb-item-title">
+              {{ it.title || nameFromPath(it.href) }}
+            </div>
+            <!-- ★ 外层负责“上下居中 + 左对齐”，内层做多行省略 -->
+            <div class="sb-item-excerpt">
+              <div class="sb-excerpt-inner">
+                {{ it.excerpt || brief(it) }}
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
     </aside>
 
     <!-- 空态 -->
-    <aside v-else class="random-sidebar empty" :class="{ sticky, dock: dockRight }">
+    <aside
+      ref="dockEl"
+      v-else
+      class="random-sidebar empty"
+      :class="{ sticky, dock: dockRight }"
+    >
       <div class="sb-title">随机推荐</div>
       <div class="sb-empty">
         暂无推荐
@@ -48,138 +65,322 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRandomPool, type RandomItem } from '../composables/useRandomPool'
 
-/** 可传入参数：条数 count、是否吸顶 sticky、是否右侧停靠 dockRight */
 const props = withDefaults(
   defineProps<{
     count?: number
     sticky?: boolean
-    dockRight?: boolean   // ★ 新增
+    dockRight?: boolean
   }>(),
   {
-    count: 6,             // ★ 默认展示 6 条 ⇒ 在 2 列布局下正好是“三排”
+    count: 6,
     sticky: true,
-    dockRight: true,      // ★ 默认启用右侧停靠
+    dockRight: true,
   },
 )
 
 const ready = ref(false)
 const items = ref<RandomItem[]>([])
+const itemsShown = ref<RandomItem[]>([])
 const { load, sample, resolveLink } = useRandomPool()
 
-const refresh = async () => {
-  if (!ready.value) {
-    await load()
-    ready.value = true
-  }
-  items.value = sample(Math.max(1, props.count))
-}
-
-const go = (it: RandomItem) => {
-  window.location.assign(resolveLink(it.href))
-}
+const go = (it: RandomItem) => window.location.assign(resolveLink(it.href))
 
 function nameFromPath(p: string) {
   const m = p.match(/\/([^/]+)\.html$/)
   return m ? decodeURIComponent(m[1]) : p
 }
 function brief(i: RandomItem) {
-  if (i.excerpt && i.excerpt.trim()) return i.excerpt.trim()
-  if (i.title && i.title.trim()) return i.title.trim()
+  if (i.excerpt?.trim()) return i.excerpt.trim()
+  if (i.title?.trim()) return i.title.trim()
   return nameFromPath(i.href)
 }
 
-onMounted(refresh)
+const dockEl = ref<HTMLElement | null>(null)
+/* titleEl 指向 .sb-header，用于测量 header 自身高度 */
+const titleEl = ref<HTMLElement | null>(null)
+const listEl = ref<HTMLElement | null>(null)
 
-// ★ 暴露给模板使用
+let ro: ResizeObserver | null = null
+let rafId: number | null = null
+
+onMounted(async () => {
+  await refresh()
+  setupAutoDock()
+})
+onBeforeUnmount(() => {
+  if (rafId) cancelAnimationFrame(rafId)
+  window.removeEventListener('resize', scheduleRecalc as any)
+  ro?.disconnect()
+})
+
+const refresh = async () => {
+  if (!ready.value) {
+    await load()
+    ready.value = true
+  }
+  items.value = sample(Math.max(1, Math.min(6, props.count || 6)))
+  scheduleRecalc()
+}
+
+function setupAutoDock() {
+  if (!props.dockRight || !dockEl.value) return
+  window.addEventListener('resize', scheduleRecalc, { passive: true })
+  ro = new ResizeObserver(scheduleRecalc)
+  ro.observe(document.documentElement)
+  scheduleRecalc()
+}
+function scheduleRecalc() {
+  if (rafId) cancelAnimationFrame(rafId)
+  rafId = requestAnimationFrame(() => {
+    applyDockLayout()
+    applyGridLayout()
+  })
+}
+
+/* 外层尺寸：正文右缘→屏幕右缘 */
+function applyDockLayout() {
+  const host = dockEl.value!
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+
+  const rootStyle = getComputedStyle(document.documentElement)
+  const contentW =
+    parseFloat((rootStyle.getPropertyValue('--content-width') || '').replace('px', '')) || 780
+
+  const hostStyle = getComputedStyle(host)
+  const GAP = parseFloat(hostStyle.getPropertyValue('--dock-gap') || '24')
+  const RIGHT_SAFE = parseFloat(hostStyle.getPropertyValue('--dock-right-safe') || '16')
+  const TOP = parseFloat(hostStyle.getPropertyValue('--dock-top') || '84')
+  const BOTTOM_SAFE = parseFloat(hostStyle.getPropertyValue('--dock-bottom-safe') || '16')
+
+  const left = Math.round((vw - contentW) / 2 + contentW + GAP)
+  const minWidth = 260
+  const width = Math.max(minWidth, vw - left - RIGHT_SAFE)
+  const height = Math.max(0, vh - TOP - BOTTOM_SAFE)
+
+  host.style.setProperty('--dock-left', left + 'px')
+  host.style.setProperty('--dock-width', width + 'px')
+  host.style.setProperty('--dock-height', height + 'px')
+}
+
+/* 网格计算（header 绝对定位在网格上方；计算时要把 header 高度回写给样式） */
+function applyGridLayout() {
+  const host = dockEl.value!
+  const list = listEl.value!
+
+  const hostStyle = getComputedStyle(host)
+  const outerW = parseFloat(hostStyle.getPropertyValue('--dock-width') || '0')
+  const outerH = parseFloat(hostStyle.getPropertyValue('--dock-height') || '0')
+
+  const PAD = 12 * 2
+  const listStyle = getComputedStyle(list)
+
+  const gapX =
+    parseFloat(listStyle.getPropertyValue('column-gap') || '') ||
+    parseFloat(listStyle.getPropertyValue('gap') || '') ||
+    20
+  const gapY =
+    parseFloat(listStyle.getPropertyValue('row-gap') || '') ||
+    parseFloat(listStyle.getPropertyValue('gap') || '') ||
+    20
+
+  const SOFT_X = parseFloat(hostStyle.getPropertyValue('--grid-soft-margin-x') || '12')
+  const SOFT_Y = parseFloat(hostStyle.getPropertyValue('--grid-soft-margin-y') || '12')
+
+  const availW = Math.max(0, outerW - PAD - SOFT_X * 2)
+  /* 不扣标题高度；让 sb-scale-wrap 使用完整可用高 */
+  const availH = Math.max(0, outerH - PAD - SOFT_Y * 2)
+
+  const candidates = [
+    { c: 2, r: 3 },
+    { c: 1, r: 3 },
+    { c: 2, r: 2 },
+    { c: 1, r: 2 },
+    { c: 1, r: 1 },
+  ]
+
+  const ratio = parseFloat(hostStyle.getPropertyValue('--card-ratio') || '') || 1.25
+
+  let best = { c: 1, r: 1, w: 0, h: 0, n: 1, gridW: 0, gridH: 0 }
+  for (const { c, r } of candidates) {
+    if (c > r) continue
+    const wByW = (availW - gapX * (c - 1)) / c
+    const hByH = (availH - gapY * (r - 1)) / r
+    const wByH = hByH / ratio
+    const cardW = Math.floor(Math.max(0, Math.min(wByW, wByH)))
+    const cardH = Math.floor(cardW * ratio)
+    if (cardW <= 0 || cardH <= 0) continue
+
+    const gridW = c * cardW + (c - 1) * gapX
+    const gridH = r * cardH + (r - 1) * gapY
+    const n = c * r
+    const area = cardW * cardH
+    const bestArea = best.w * best.h
+    const better = n > best.n || (n === best.n && area > bestArea)
+    if (better) best = { c, r, w: cardW, h: cardH, n, gridW, gridH }
+  }
+
+  const showN = Math.max(0, Math.min(best.n, items.value.length, 6))
+  itemsShown.value = items.value.slice(0, showN)
+
+  // 回写 gap / 宽高 / 轨道
+  list.style.columnGap = `${gapX}px`
+  list.style.rowGap = `${gapY}px`
+  list.style.width = `${best.gridW}px`
+  list.style.marginLeft = 'auto'
+  list.style.marginRight = 'auto'
+  list.style.gridTemplateColumns = `repeat(${best.c}, ${best.w}px)`
+  list.style.gridAutoRows = `${best.h}px`
+
+  // 写入总高度 & 单卡尺寸：用于上下居中与字体联动
+  list.style.height = `${best.gridH}px`
+  host.style.setProperty('--card-w', `${best.w}px`)
+  host.style.setProperty('--card-h', `${best.h}px`)
+
+  // 把“可用高度 / 网格总高 / 网格总宽 / 行距（纵向间距）”告诉样式
+  host.style.setProperty('--viewport-h', `${availH}px`)
+  host.style.setProperty('--grid-h', `${best.gridH}px`)
+  host.style.setProperty('--grid-w', `${best.gridW}px`)
+  host.style.setProperty('--grid-gap-y', `${gapY}px`)
+
+  // 计算“摘要可显示行数”
+  const cardPadding = 20
+  const baseFont = Math.max(10, Math.min(16, best.w * 0.08))
+  const titleFont = baseFont * 1.1
+  const titleLineHeight = 1.2
+  const titleBlock = titleFont * titleLineHeight + 4
+  const availTextH = Math.max(0, best.h - cardPadding - titleBlock)
+  const bodyLineH = baseFont * 1.6
+  const lines = Math.max(1, Math.floor(availTextH / bodyLineH))
+  host.style.setProperty('--f-base', `${baseFont}px`)
+  host.style.setProperty('--excerpt-lines', String(lines))
+
+  // 测量 header 自身高度，写入 --header-h，用于让 header 不与网格重叠
+  const headerH = (titleEl.value?.getBoundingClientRect().height || 0)
+  host.style.setProperty('--header-h', `${headerH}px`)
+}
+
 const dockRight = props.dockRight
 </script>
 
 <style scoped>
-/* ========= 外观与布局（原样） ========= */
 .random-sidebar {
   width: 100%;
   box-sizing: border-box;
   padding: 12px;
-  border: 1px solid var(--c-border, #e5e7eb);
-  border-radius: 12px;
-  background: var(--vp-c-bg-soft, var(--c-bg, #fff));
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+
+  /* 外框完全透明 */
+  border: none;
+  background: transparent;
+  box-shadow: none;
+
+  /* 整块（标题+列表）在侧栏高度内上下居中（基础居中，sb-list 再做精确居中） */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  --dock-gap: 80px;
+  --dock-right-safe: 50px;
+  --dock-top: 84px;
+  --dock-bottom-safe: 16px;
+  --grid-soft-margin-x: 12px;
+  --grid-soft-margin-y: 12px;
+  --card-ratio: 1.25;
+
+  /* header 与网格顶边的间距（默认取行距，JS 会把行距写入 --grid-gap-y） */
+  --header-gap: var(--grid-gap-y, 20px);
+
+  /* 由 JS 写入：用于绝对定位 */
+  --grid-w: auto;
+  --grid-h: 0px;
+  --viewport-h: 100%;
+  --header-h: 0px;
 }
 
 .random-sidebar.sticky {
   position: sticky;
-  top: 84px;
+  top: var(--dock-top, 84px);
 }
 
-/* ========= ★ 新增：右侧停靠样式（与原逻辑一致，仅用于把侧栏放入右侧留白） =========
-   - 仅桌面端启用
-   - 计算方式：
-     内容最大宽度记为 --zw-content (默认 780px；与主题差不多，你可按站点实际调)
-     右侧留白 = (100vw - --zw-content) / 2
-     我们把侧栏放在内容区右边，再右移 24px 作为内容与侧栏的间距
-*/
 @media (min-width: 1200px) {
   .random-sidebar.dock {
-    position: fixed;      /* 固定在视口，不挤正文 */
-    top: 84px;
-    width: var(--rs-width, 300px);  /* 侧栏宽度，可在使用处通过 style 覆盖 */
-
-    /* 内容区宽度（按你的站点调，常见 740~820）*/
-    --zw-content: var(--content-width, 780px);
-
-    /* 放到“内容区右侧 + 24px” */
-    left: calc(
-      (100vw - var(--zw-content)) / 2 + var(--zw-content) + 100px
+    position: fixed;
+    top: var(--dock-top, 84px);
+    left: var(
+      --dock-left,
+      calc((100vw - var(--content-width, 780px)) / 2 + var(--content-width, 780px) + var(--dock-gap, 24px))
     );
-
-    /* 安全边距，避免过窄屏幕时溢出到右边 */
-    right: 16px;
-    max-width: min(
-      var(--rs-width, 300px),
-      calc(100vw - 16px - ((100vw - var(--zw-content)) / 2 + var(--zw-content) + 24px))
-    );
+    width: var(--dock-width, 300px);
+    height: var(--dock-height, calc(100vh - var(--dock-top, 84px) - var(--dock-bottom-safe, 16px)));
+    right: var(--dock-right-safe, 16px);
+    overflow: hidden;
   }
-
-  /* 页面正文可能 overflow: hidden；这里确保侧栏固定时可见 */
   :global(.theme-container),
   :global(.page) {
     overflow: visible;
   }
 }
 
-/* 小屏隐藏（原样） */
-@media (max-width: 1024px) {
-  .random-sidebar {
-    display: none;
-  }
+/* 列表容器：高度使用 JS 写入的可用高，并作为绝对居中的定位容器 */
+.random-sidebar .sb-scale-wrap {
+  width: 100%;
+  height: var(--viewport-h, 100%);
+  position: relative;   /* 让 sb-list / sb-header 使用绝对定位参照它 */
 }
 
-/* 标题 */
+/* 标题行：放在“网格顶边的上方”，预留自身高度 + 行距，且与网格左右对齐 */
+.sb-header {
+  position: absolute;
+  /* 网格上沿 = 50% - grid-h/2；header 顶边 = 上沿 - header-h - header-gap */
+  top: calc(50% - var(--grid-h, 0px) / 2 - var(--header-h, 0px) - var(--header-gap, 20px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+
+  width: var(--grid-w, auto);               /* 与网格同宽 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;           /* 标题贴左、按钮贴右 */
+  gap: 8px;
+  margin: 0;
+}
+
 .sb-title {
-  font-weight: 700;
-  margin-bottom: 8px;
-  font-size: 16px;
-  color: var(--c-text, #111);
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.2;
+  margin: 0;
 }
 
-/* ========= ★ 列表区域：改为 2 列网格 =========
-   - grid-template-columns: 2 列平均分
-   - 默认 props.count = 6 ⇒ 3 行 × 2 列（正好三排）
-*/
+/* 间距明确：列距/行距 + 绝对几何居中（以可用高度的中心线为轴扩散） */
 .sb-list {
   list-style: none;
   padding: 0;
   margin: 0;
+
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(2, minmax(0, 1fr)); /* ★ 关键：两列 */
-  /* 如需更紧凑，可在使用处把 --rs-width 调大（例如 380~460px） */
+  --grid-gap-x: 20px;
+  --grid-gap-y: 20px;
+  column-gap: var(--grid-gap-x);
+  row-gap: var(--grid-gap-y);
+  gap: var(--grid-gap-y) var(--grid-gap-x);
+  grid-auto-flow: row;
+
+  /* 精确居中：把网格中心放在容器中心 */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* 宽高、列数、行高由 JS 写入 */
+  min-height: 0;
+  overflow: hidden;
 }
 
-/* 每条推荐卡片 */
+/* 卡片（字体跟随卡片宽度联动） */
 .sb-item {
   border: 1px solid var(--c-border, #e5e7eb);
   border-radius: 10px;
@@ -187,7 +388,14 @@ const dockRight = props.dockRight
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
   background: var(--vp-c-bg-soft, var(--c-bg, #fff));
-  min-height: 130px; /* ★ 给卡片一个最小高度，保证两列对齐更整齐；可按需调整 */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  /* 基准字号：JS 写回 --f-base；无则按卡片宽度估算并限幅 */
+  font-size: var(--f-base, clamp(10px, calc(var(--card-w, 180px) * 0.08), 16px));
 }
 .sb-item:hover {
   transform: translateY(-1px);
@@ -195,57 +403,81 @@ const dockRight = props.dockRight
   border-color: var(--c-border, #cbd5e1);
 }
 
-/* 推荐标题 */
+/* 标题：单行省略 */
 .sb-item-title {
   font-weight: 600;
-  font-size: 12px;
+  font-size: 1.1em;
   color: var(--c-text, #111);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
   margin-bottom: 4px;
 }
 
-/* 推荐摘要 */
+/* 摘要（外层）：上下居中 + 左对齐；不做省略，避免布局冲突 */
 .sb-item-excerpt {
-  font-size: 10px;
-  line-height: 1.55;
+  font-size: 0.95em;
+  line-height: 1.6;
   color: var(--c-text-light, #65758b);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;  /* 最多两行 */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-clamp: 2;
+
+  /* 关键：用列方向的 Flex，纵向居中 + 水平靠左 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;      /* 垂直居中 */
+  align-items: flex-start;       /* 水平靠左 */
+
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0 4px;
+  overflow: hidden;              /* 防溢出 */
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
 }
 
-/* ========= ★ “换一批”按钮横跨两列 =========
-   - 在上面的 Grid 中，让按钮占满整行，看起来更对称
-*/
+/* 摘要（内层）：负责多行省略，保持左对齐 */
+.sb-excerpt-inner {
+  text-align: left;
+  word-break: break-word;
+  overflow: hidden;
+
+  /* 多行省略 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--excerpt-lines, 3);
+}
+
+/* 按钮（通用 & 内联修饰） */
 .sb-refresh {
-  width: 100%;
-  margin-top: 10px;
+  width: auto;               /* 标题行里使用，不需要占满 */
+  margin-top: 0;
   border: 1px solid var(--c-border, #e5e7eb);
   background: var(--vp-c-bg-soft, var(--c-bg, #fff));
   color: var(--c-text, #111);
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-radius: 10px;
   cursor: pointer;
-  grid-column: 1 / -1; /* ★ 关键：跨两列 */
+  flex-shrink: 0;
 }
+.sb-refresh--inline {}
 
-/* 暗色 */
 html[data-theme='dark'] .random-sidebar,
 html[data-theme='dark'] .sb-item,
 html[data-theme='dark'] .sb-refresh {
   border-color: #333;
-  background: var(--vp-c-bg-soft, #0b0f19);
-  color: var(--c-text, #e5e5e5);
+  background: transparent;
+  color: #e5e5e5;
 }
-html[data-theme='dark'] .sb-item-excerpt {
-  color: #b4bdc6;
+html[data-theme='dark'] .sb-item { background: rgba(255,255,255,0.02); }
+html[data-theme='dark'] .sb-item-excerpt { color: #b4bdc6; }
+
+/* 小屏隐藏 */
+@media (max-width: 1024px) {
+  .random-sidebar { display: none; }
 }
 
-/* 空态样式 */
+/* 空态 */
 .random-sidebar.empty .sb-empty {
   font-size: 13px;
   color: var(--c-text-light, #65758b);

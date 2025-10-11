@@ -9,6 +9,8 @@ tag:
 - 灵动骑士
 - 世界英雄
 isOriginal: true
+summary: 以速度与直觉见长的近战守护者。
+quote: 光之所在，即是吾之归途。
 ---
 
 # [灵动骑士][EtherealKnight]
@@ -72,7 +74,7 @@ isOriginal: true
   { "name":"韩梓宁", "role":"朋友", "avatar":"/images/EtherealKnightCombatSuit.jpg", "link":"/demo-0.0.1/character/superhero/character-Scourge.md" }
 ]' />
 
-## 人物关系图谱aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+## 人物关系图谱
 
 <ClientOnly>
   <RelationGraph

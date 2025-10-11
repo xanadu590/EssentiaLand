@@ -70,7 +70,7 @@
   { "name":"舒雪", "role":"朋友", "avatar":"/images/EtherealKnightCombatSuit.jpg", "link":"/demo-0.0.1/character/superhero/character-Scourge.md" },
   { "name":"韩梓宁", "role":"朋友", "avatar":"/images/EtherealKnightCombatSuit.jpg", "link":"/demo-0.0.1/character/superhero/character-Scourge.md" }
 ]' />
-<h2 id="人物关系图谱aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" tabindex="-1"><a class="header-anchor" href="#人物关系图谱aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"><span>人物关系图谱aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</span></a></h2>
+<h2 id="人物关系图谱" tabindex="-1"><a class="header-anchor" href="#人物关系图谱"><span>人物关系图谱</span></a></h2>
 <ClientOnly>
   <RelationGraph
     :height="420"

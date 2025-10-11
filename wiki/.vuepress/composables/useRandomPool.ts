@@ -10,6 +10,8 @@ export type RandomItem = {
   href: string
   title?: string
   excerpt?: string
+  /** ★ 新增：记录这是“简介版”还是“台词版”（便于调试/扩展，可选） */
+  variant?: 'summary' | 'quote' | 'excerpt'
 }
 
 /**
@@ -19,24 +21,18 @@ export type RandomItem = {
  * - “生产”尽量用 <meta> 注入的 build-rev / build-time；没有则回退为时间戳
  */
 function makeVersionedUrl(raw: string): string {
-  // 1) 判断是否本地开发：不依赖 env，仅看 hostname
   const host = location.hostname
   const isLocal =
     host === 'localhost' ||
     host === '127.0.0.1' ||
     host.endsWith('.local')
 
-  // 2) 获取一个“构建版本号”
-  //    - 优先从 <meta name="build-rev" content="..."> 或 <meta name="build-time"> 获取（可选）
-  //    - 否则回退到时间戳
   const metaRev = document.querySelector('meta[name="build-rev"]') as HTMLMetaElement | null
   const metaTime = document.querySelector('meta[name="build-time"]') as HTMLMetaElement | null
   const buildVersion = (metaRev?.content || metaTime?.content || String(Date.now())).trim()
 
-  // 3) DEV：每次都用 Date.now()；PROD：用构建版本（稳定，部署即更新）
-  const ver = isLocal ? String(Date.now()) : buildVersion
+  const ver = (DEBUG || isLocal) ? String(Date.now()) : buildVersion
 
-  // 4) 安全地把 ?v= 挂上去
   try {
     const u = new URL(raw, location.origin)
     u.searchParams.set('v', ver)
@@ -51,14 +47,7 @@ export function useRandomPool() {
   const pool = ref<RandomItem[]>([])
   const loaded = ref(false)
 
-  /**
-   * 依次尝试多个候选 URL（都带版本参数），哪个能拿到就用哪个
-   * - withBase('data/random-index.json')          受 base 影响的路径
-   * - '/data/random-index.json'                   站点根路径
-   * - 自动剥离第一段 base（如 /demo-0.0.1/ → /）
-   */
   const tryFetch = async <T = any>(candidates: string[]): Promise<T | null> => {
-    // 🔧 仅此处新增：按环境切换缓存策略（开发永远不缓存；生产保持 force-cache 由 ?v= 控制失效）
     const host = location.hostname
     const isLocal =
       host === 'localhost' ||
@@ -70,7 +59,7 @@ export function useRandomPool() {
     for (const url of candidates) {
       try {
         DEBUG && console.info(TAG, 'fetch try:', url)
-        const res = await fetch(url, { cache: cacheMode }) // ← 改这里
+        const res = await fetch(url, { cache: cacheMode })
         if (!res.ok) {
           DEBUG && console.warn(TAG, `fetch fail ${res.status}:`, url)
           continue
@@ -89,10 +78,10 @@ export function useRandomPool() {
     loaded.value = false
     pool.value = []
 
-    // A) 组织候选 URL，并统一加 ?v= 版本参数（关键改动①）
+    // A) 组织候选 URL，并统一加 ?v= 版本参数
     const baseUrl = makeVersionedUrl(withBase('data/random-index.json'))
 
-    // 去掉运行时 base 的简易版本（例如把 /demo-0.0.1/data/random-index.json → /data/random-index.json）
+    // 去掉运行时 base 的简易版本
     const stripped = (() => {
       try {
         const u = new URL(baseUrl, location.origin)
@@ -100,7 +89,7 @@ export function useRandomPool() {
         if (seg) {
           const first = seg[1]
           if (/^(demo-[\w.-]+|v[\w.-]+)$/i.test(first)) {
-            return makeVersionedUrl(`/${seg[2]}`) // 去掉第一段
+            return makeVersionedUrl(`/${seg[2]}`)
           }
         }
       } catch {}
@@ -109,9 +98,9 @@ export function useRandomPool() {
 
     const candidates = Array.from(
       new Set([
-        baseUrl,                                      // 受 base 影响 + v
-        makeVersionedUrl('/data/random-index.json'),  // 站点根 + v
-        stripped ?? undefined,                        // 自动剥 base + v
+        baseUrl,
+        makeVersionedUrl('/data/random-index.json'),
+        stripped ?? undefined,
       ].filter(Boolean) as string[])
     )
 
@@ -119,30 +108,21 @@ export function useRandomPool() {
     const json = await tryFetch<any>(candidates)
 
     if (json) {
-      pool.value = normalizeIndex(json)
+      pool.value = normalizeIndex(json) // ★ 不在这里去重（允许同 href 的“简介/台词”并存）
       DEBUG && console.info(TAG, 'normalizeIndex ->', pool.value.length)
     } else {
       // C) 全部失败：兜底扫描页面链接
       console.warn(`${TAG} all fetch candidates failed, fallback to document scan.`)
-
-      // 关键改动②：等两帧，确保页面主要内容渲染完再扫，避免“漏抓”
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
-
-      pool.value = collectFromDocument()
+      pool.value = collectFromDocument()   // 这里仍会按 href 去重（因为没有“台词/简介”双版本的意义）
       DEBUG && console.info(TAG, 'collectFromDocument ->', pool.value.length)
     }
 
-    // D) 去重
-    const beforeUnique = pool.value.length
-    pool.value = uniqueByHref(pool.value)
-    DEBUG && console.info(TAG, `uniqueByHref: ${beforeUnique} -> ${pool.value.length}`)
-
-    // E) 排除当前页 / 顶层页
-    const cur = normalize(location.pathname)
+    // ★ D) 不做 global href 去重（保留同页的两个版本）；仅做轻度清洗
     const beforeFilter = pool.value.length
+    const cur = normalize(location.pathname)
     pool.value = pool.value.filter(i => {
       const p = normalize(i.href)
-      // 只排除真正同页面；避免因为 base 的不同表示而误判
       return !isTopPage(p) && p !== cur && !location.pathname.endsWith(p)
     })
     DEBUG && console.info(TAG, `filter current/top: ${beforeFilter} -> ${pool.value.length} (cur=${cur})`)
@@ -150,9 +130,9 @@ export function useRandomPool() {
     loaded.value = true
   }
 
-  /** 从池中随机抽取 n 条（不放回、不重复） */
+  /** 从池中随机抽取 n 条（不放回；★ 同一 href 只取 1 条，保证“不重复页面”） */
   const sample = (n: number): RandomItem[] => {
-    const seen = new Set<string>()
+    const seen = new Set<string>()     // ★ 按 href 去重放在抽样阶段
     const arr = pool.value.slice()
     const out: RandomItem[] = []
     while (arr.length && out.length < n) {
@@ -164,7 +144,7 @@ export function useRandomPool() {
         out.push(item)
       }
     }
-    DEBUG && console.debug(TAG, `sample(${n}) -> ${out.length}`, out.map(i => i.href))
+    DEBUG && console.debug(TAG, `sample(${n}) -> ${out.length}`, out.map(i => `${i.href} [${i.variant ?? ''}]`))
     return out
   }
 
@@ -174,38 +154,69 @@ export function useRandomPool() {
   return { pool, loaded, load, sample, resolveLink }
 }
 
-/* ================= 工具函数（保持原逻辑，补充注释） ================ */
+/* ================= 工具函数 ================ */
 
-/** 解析 random-index.json 为 RandomItem[]（兼容 {pages:[]} 或数组），并排除顶层页/外链/非 .html */
+/**
+ * 解析 random-index.json 为 RandomItem[]
+ * 兼容两种结构：
+ * - { pages: [ { path/title/summary/quote/excerpt } ] }
+ * - [ { path/title/summary/quote/excerpt } ]
+ *
+ * 规则：
+ * - 同一页面可产出最多两条：
+ *   1) summary 版（variant='summary'）
+ *   2) quote   版（variant='quote'）
+ * - 若没有 summary/quote，但有 excerpt，则产出 1 条（variant='excerpt'）
+ * - 过滤：外链、顶层页、非 .html
+ * - ★ 不做 href 去重（留给 sample 阶段控制“同一页面只出 1 条”）
+ */
 function normalizeIndex(json: any): RandomItem[] {
   if (!json) return []
 
-  const toItem = (i: any): RandomItem | null => {
-    const raw = String(i?.path ?? i?.link ?? '')
-    if (!raw) return null
-    const href = normalize(raw)
-    if (!/\.html$/i.test(href) || isTopPage(href) || href.startsWith('http')) {
-      DEBUG && console.debug(TAG, 'skip:', { raw, href })
-      return null
+  const rows: any[] = Array.isArray(json?.pages)
+    ? json.pages
+    : Array.isArray(json)
+    ? json
+    : []
+
+  const out: RandomItem[] = []
+  for (const raw of rows) {
+    const pathLike = String(raw?.path ?? raw?.link ?? raw?.href ?? '')
+    const href = normalize(pathLike)
+    if (!href || !/\.html$/i.test(href) || isTopPage(href) || href.startsWith('http')) {
+      DEBUG && console.debug(TAG, 'skip:', { pathLike, href })
+      continue
     }
-    return {
-      href,
-      title: (i?.title ?? '').trim(),
-      excerpt: (i?.excerpt ?? '').trim(),
+
+    const title = String(raw?.title ?? '').trim()
+    const summary = String(raw?.summary ?? '').trim()
+    const quote = String(raw?.quote ?? '').trim()
+    const excerpt = String(raw?.excerpt ?? '').trim()
+
+    // 1) 人物页可生成 2 条
+    if (summary) {
+      out.push({ href, title, excerpt: summary, variant: 'summary' })
+    }
+    if (quote) {
+      out.push({ href, title, excerpt: quote, variant: 'quote' })
+    }
+
+    // 2) 兼容旧数据：只有 excerpt（且没有 summary/quote）则进 1 条
+    if (!summary && !quote && excerpt) {
+      out.push({ href, title, excerpt, variant: 'excerpt' })
+    }
+
+    // 3) 如果三者都没有，也可选择丢弃；这里保留为空摘要的单条，便于兜底
+    if (!summary && !quote && !excerpt) {
+      out.push({ href, title, excerpt: '', variant: 'excerpt' })
     }
   }
 
-  const list = Array.isArray(json?.pages)
-    ? (json.pages as any[]).map(toItem).filter(Boolean)
-    : Array.isArray(json)
-    ? (json as any[]).map(toItem).filter(Boolean)
-    : []
-
-  DEBUG && console.info(TAG, 'normalizeIndex list =', list.length)
-  return uniqueByHref(list as RandomItem[])
+  DEBUG && console.info(TAG, 'normalizeIndex list =', out.length)
+  return out
 }
 
-/** 从文档中收集“本站 .html”链接；排除顶层页 */
+/** 从文档中收集“本站 .html”链接；排除顶层页（此分支没有 summary/quote，保留去重即可） */
 function collectFromDocument(): RandomItem[] {
   const anchors = Array.from(document.querySelectorAll<HTMLAnchorElement>('a'))
   const items = anchors
@@ -213,7 +224,7 @@ function collectFromDocument(): RandomItem[] {
     .filter(Boolean)
     .map(h => normalize(String(h)))
     .filter(p => /\.html$/i.test(p) && !p.startsWith('http') && !isTopPage(p))
-    .map(p => ({ href: p, title: '', excerpt: '' }))
+    .map(p => ({ href: p, title: '', excerpt: '', variant: 'excerpt' as const }))
 
   DEBUG && console.info(TAG, 'collectFromDocument size =', items.length)
   return uniqueByHref(items)
@@ -225,6 +236,7 @@ function isTopPage(p: string): boolean {
   return x === '/' || /\/index\.html$/i.test(x) || /\/README\.html$/i.test(x)
 }
 
+/** 仅在 fallback 收集时使用的去重（保持池内“每个 href 1 条”） */
 function uniqueByHref(list: RandomItem[]): RandomItem[] {
   const m = new Map<string, RandomItem>()
   list.forEach(i => {
@@ -244,7 +256,7 @@ function ensureLeadingSlash(p: string) {
  * - 剥离已知 base 前缀：
  *    1) 运行时 base：withBase('/')
  *    2) 历史：'/ZenithWorld/'
- *    3) 自动识别：当前 URL 的首段若形如 'demo-*' 或 'v*'，视作 base（如 '/demo-0.0.1/'、'/v1/'）
+ *    3) 自动识别：当前 URL 的首段若形如 'demo-*' 或 'v*'，视作 base
  * - 最终确保以 '/' 开头
  */
 function normalize(href: string): string {
@@ -254,10 +266,8 @@ function normalize(href: string): string {
   } catch {}
   path = ensureLeadingSlash(path)
 
-  // 1) 运行时 base（如 '/' 或 '/ZenithWorld/'）
   const runtimeBase = normalizeBase(withBase('/').replace(location.origin, ''))
 
-  // 2) 自动识别当前 URL 的第一段作为潜在 base（demo-*/v*）
   const autoBases: string[] = []
   const seg = location.pathname.match(/^\/([^/]+)\//)
   if (seg) {
@@ -267,10 +277,8 @@ function normalize(href: string): string {
     }
   }
 
-  // 3) 历史手动列举
   const manualBases = ['/ZenithWorld/']
 
-  // 汇总并按长度降序（避免短前缀先剥导致误差）
   const knownBases = [runtimeBase, ...autoBases, ...manualBases]
     .filter(Boolean)
     .map(normalizeBase)
@@ -295,3 +303,4 @@ function normalizeBase(b: string): string {
   if (!x.endsWith('/')) x = `${x}/`
   return x
 }
+

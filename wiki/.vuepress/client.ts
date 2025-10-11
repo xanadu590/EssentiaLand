@@ -10,6 +10,8 @@ import RoleCard from './components/RoleCard.vue'
 import RandomCard from './components/RandomCard.vue'
 import RandomSidebar from './components/RandomSidebar.vue'
 import Layouts from './layouts/Layouts.vue'
+import LeadBlock from './components/LeadBlock.vue'
+
 
 
 export type AISetting = {
@@ -60,6 +62,8 @@ export default defineClientConfig({
     app.component("RandomCard", RandomCard)
 
     app.component("RandomSidebar", RandomSidebar)
+
+    app.component("LeadBlock", LeadBlock)
     
   },
 

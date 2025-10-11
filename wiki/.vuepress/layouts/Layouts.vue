@@ -2,19 +2,18 @@
 <script setup lang="ts">
 /**
  * 自定义 Layout：覆盖默认目录栏 (TOC)
- * - 让长标题缩略为前 5 个字
- * - 鼠标悬停显示完整标题
- * - 可自定义目录宽度
+ * + 在标题下方自动显示简介(summary)与台词(quote)
  */
 import { Layout } from "vuepress-theme-hope/client";
-import { usePageData } from "@vuepress/client";
+import { usePageData, usePageFrontmatter } from "@vuepress/client";
 import { computed } from "vue";
+import LeadBlock from "../components/LeadBlock.vue"; // ★ 引入简介+台词组件
 
 /* ===== 类型定义 ===== */
 type Heading = {
   level: number;
   title: string;
-  fullTitle?: string; // 原始标题，用于 tooltip
+  fullTitle?: string;
   text?: string;
   slug: string;
   link: string;
@@ -22,6 +21,7 @@ type Heading = {
 
 /* ===== 获取页面目录 headers ===== */
 const page = usePageData();
+const frontmatter = usePageFrontmatter<any>();
 
 /** ★ 限制标题长度函数：保留前 n 个字，超出加省略号 */
 function truncateTitle(str: string, max = 5) {
@@ -36,8 +36,8 @@ const headings = computed<Heading[]>(() => {
     const text = String(h?.title ?? h?.text ?? "");
     return {
       level: Number(h?.level ?? 2),
-      title: truncateTitle(text, 5), // ← 控制显示字数
-      fullTitle: text,               // ← 悬停显示完整标题
+      title: truncateTitle(text, 5),
+      fullTitle: text,
       text,
       slug: String(h?.slug ?? ""),
       link: String(h?.link ?? (h?.slug ? `#${h.slug}` : "#")),
@@ -48,6 +48,23 @@ const headings = computed<Heading[]>(() => {
 
 <template>
   <Layout>
+    <!-- 主体区域内容 -->
+    <template #default>
+      <main class="zen-page">
+        <!-- 页面标题 -->
+        <h1 class="zen-title">
+          {{ frontmatter.title || page.title }}
+        </h1>
+
+        <!-- ★ 自动显示简介(summary)与台词(quote) -->
+        <LeadBlock />
+
+        <!-- 页面正文 -->
+        <Content />
+      </main>
+    </template>
+
+    <!-- 右侧目录栏 -->
     <template #toc>
       <aside class="zen-toc" aria-label="此页内容">
         <div class="zen-toc__title">此页内容</div>
@@ -57,7 +74,7 @@ const headings = computed<Heading[]>(() => {
               v-for="h in headings"
               :key="h.slug || h.link"
               :class="'lv-' + (h.level || 2)"
-              :title="h.fullTitle" 
+              :title="h.fullTitle"
             >
               <a :href="h.link">{{ h.title }}</a >
             </li>
@@ -69,9 +86,24 @@ const headings = computed<Heading[]>(() => {
 </template>
 
 <style scoped>
+/* ===== 主体标题与内容 ===== */
+.zen-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.zen-title {
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 800;
+  margin-top: 10px;
+  margin-bottom: 8px;
+  color: var(--c-text, #111);
+  text-align: left;
+}
+
 /* ===== 右侧目录栏整体样式 ===== */
 .zen-toc {
-  /* ★ 改这里控制宽度（默认 180px）*/
   width: var(--zen-toc-w, 180px);
   max-width: var(--zen-toc-w, 180px);
   position: sticky;
@@ -83,7 +115,6 @@ const headings = computed<Heading[]>(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* ===== 标题文字 ===== */
 .zen-toc__title {
   font-weight: 700;
   margin-bottom: 8px;
@@ -91,33 +122,30 @@ const headings = computed<Heading[]>(() => {
   color: var(--c-text, #111);
 }
 
-/* ===== 列表整体 ===== */
 .zen-toc__list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-/* ===== 每一项 ===== */
 .zen-toc__list li {
   margin: 6px 0;
   line-height: 1.45;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap; /* ← 保持单行 */
+  white-space: nowrap;
   transition: color 0.15s ease;
 }
+
 .zen-toc__list li:hover {
   color: var(--c-text-accent, #0078e7);
 }
 
-/* ===== 层级缩进 ===== */
 .zen-toc__list li.lv-3 { padding-left: 12px; }
 .zen-toc__list li.lv-4 { padding-left: 22px; }
 .zen-toc__list li.lv-5 { padding-left: 30px; }
 .zen-toc__list li.lv-6 { padding-left: 38px; }
 
-/* ===== 链接样式 ===== */
 .zen-toc__list a {
   text-decoration: none;
   color: inherit;
