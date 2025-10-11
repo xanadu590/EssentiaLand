@@ -68,7 +68,7 @@
     {
       "title": "[赤听][HearTone]",
       "path": "/demo-0.0.1/character/superhero/character-HearTone.html",
-      "excerpt": "赤听HearTone 基本信息 姓名："
+      "excerpt": "赤听HearTone 基本信息 姓名： <RandomSidebar :count=\"6\" :sticky=\"true\" /"
     },
     {
       "title": "[幻绘][Illustra]",

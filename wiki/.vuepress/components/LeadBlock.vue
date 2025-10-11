@@ -1,113 +1,113 @@
-<!-- /.vuepress/components/LeadBlock.vue -->
+<!-- wiki/.vuepress/components/LeadBlock.vue -->
 <template>
-  <!-- 没有任何内容就不渲染 -->
-  <section v-if="hasLead" class="lead">
-    <!-- 一句话简介（所有页都可用） -->
-    <p v-if="summary" class="lead-summary" :title="summary">
-      {{ summary }}
-    </p >
+  <ClientOnly>
+    <!-- 只有有内容时才渲染，避免空块 -->
+    <section
+      v-if="hasContent"
+      class="leadblock"
+      role="note"
+      aria-label="页面导语"
+    >
+      <!-- 简介：更醒目，行高舒适，超过宽度自动换行 -->
+      <p v-if="summary" class="leadblock__summary">
+        {{ summary }}
+      </p >
 
-    <!-- 台词（人物页可选） -->
-    <figure v-if="quote" class="lead-quote">
-      <blockquote class="lead-quote-text">
-        <span aria-hidden="true" class="quote-mark">“</span>
-        <span class="quote-body">{{ quote }}</span>
-        <span aria-hidden="true" class="quote-mark">”</span>
-      </blockquote>
-      <!-- 需要署名就给 frontmatter 加 author，会自动出现；不写就不显示 -->
-      <figcaption v-if="author" class="lead-quote-author">— {{ author }}</figcaption>
-    </figure>
-  </section>
+      <!-- 台词：左侧强调线 + 引号装饰；与简介有区隔 -->
+      <figure v-if="quote" class="leadblock__quote">
+        <blockquote class="leadblock__qtext">“{{ quote }}”</blockquote>
+      </figure>
+    </section>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
-import { usePageFrontmatter } from '@vuepress/client'
 import { computed } from 'vue'
 
-type FM = {
+/** 只用 props，不依赖 vue-router / @vuepress/client 等注入 */
+const props = defineProps<{
   summary?: string
   quote?: string
-  quoteAuthor?: string
-}
+}>()
 
-const fm = usePageFrontmatter<FM>()
+const summary = computed(() => String(props.summary ?? '').trim())
+const quote   = computed(() => String(props.quote   ?? '').trim())
 
-const summary = computed(() => (fm.value.summary || '').trim())
-const quote   = computed(() => (fm.value.quote   || '').trim())
-const author  = computed(() => (fm.value.quoteAuthor || '').trim())
-
-const hasLead = computed(() => !!summary.value || !!quote.value)
+/** 有任一字段才展示 */
+const hasContent = computed(() => !!(summary.value || quote.value))
 </script>
 
 <style scoped>
-.lead {
-  /* 与标题的距离；可按需调大/调小 */
-  margin: 10px 0 18px;
-}
-
-/* 一句话简介 */
-.lead-summary {
-  margin: 0;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: var(--vp-c-bg-soft, #f7f7f9);
-  color: var(--c-text, #222);
-  font-size: clamp(14px, 1.8vw, 17px);
-  line-height: 1.6;
-  /* 两端对齐更像编辑好的导语，可改成 left */
-  text-align: justify;
-}
-
-/* 台词整体区域 */
-.lead-quote {
-  margin: 10px 0 0;
-  padding: 12px 16px;
+/* ===== 容器 ===== */
+.leadblock{
+  border: 1px solid var(--vp-c-border, #e5e7eb);
   border-radius: 12px;
-  border: 1px solid var(--c-border, #e5e7eb);
-  background: var(--vp-c-bg, #fff);
+  background: var(--vp-c-bg-soft, #fafafa);
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  padding: 14px 16px;
+  margin: 12px 0 18px;
+  display: grid;
+  row-gap: 8px;
 }
 
-/* 引号文本 */
-.lead-quote-text {
+/* ===== 简介（靠右 + 自动破折号） ===== */
+.leadblock__summary{
   margin: 0;
+  text-align: right; /* ✅ 靠右 */
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.65;
   color: var(--c-text, #111);
-  font-size: clamp(15px, 2vw, 18px);
-  line-height: 1.7;
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
+  font-weight: 600;
+  word-break: break-word;
+  position: relative;
+}
+.leadblock__summary::before{
+  content: "— "; /* ✅ 自动加破折号（不影响文本内容） */
+  color: var(--c-text-light, #555);
+  opacity: 0.7;
+  margin-right: 2px;
 }
 
-/* 左右大引号（装饰） */
-.quote-mark {
-  opacity: .4;
-  font-size: 1.2em;
-  line-height: 1;
+/* ===== 台词（居中 + 灰色 + 略大） ===== */
+.leadblock__quote{
+  margin: 0;
+  padding: 0;
+  text-align: center; /* ✅ 居中 */
+}
+.leadblock__qtext{
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+  padding-left: 10px;
+  font-size: clamp(16px, 1.6vw, 19px); /* ✅ 略大 */
+  line-height: 1.8;
+  color: var(--c-text-light, #6b7280); /* ✅ 灰色 */
+  word-break: break-word;
+  font-style: italic;
 }
 
-.quote-body {
-  /* 多行省略（最多 3 行），避免过长 */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
+/* 左侧强调条 */
+.leadblock__qtext::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0.45em;
+  width:3px;
+  height:1.2em;
+  background: currentColor;
+  opacity:.35;
+  border-radius:2px;
 }
 
-/* 署名（可选） */
-.lead-quote-author {
-  margin: 6px 2px 0;
-  color: var(--c-text-light, #6b7280);
-  font-size: 0.95em;
-  text-align: right;
+/* ===== 暗色模式 ===== */
+html[data-theme="dark"] .leadblock{
+  border-color:#333;
+  background: rgba(255,255,255,0.03);
 }
-
-/* 暗色微调 */
-html[data-theme='dark'] .lead-summary {
-  background: rgba(255,255,255,0.05);
-  color: #e5e7eb;
+html[data-theme="dark"] .leadblock__qtext{
+  color:#b4bdc6;
 }
-html[data-theme='dark'] .lead-quote {
-  background: rgba(255,255,255,0.02);
-  border-color: #333;
+html[data-theme="dark"] .leadblock__summary::before{
+  color:#aaa;
 }
 </style>

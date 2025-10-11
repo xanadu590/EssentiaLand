@@ -13,6 +13,8 @@ summary: 以速度与直觉见长的近战守护者。
 quote: 光之所在，即是吾之归途。
 ---
 
+<LeadBlock :summary="$frontmatter.summary" :quote="$frontmatter.quote" />
+
 # [灵动骑士][EtherealKnight]
 
 <div class="ai-row">

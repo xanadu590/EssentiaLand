@@ -1,4 +1,4 @@
-<template><div><h1 id="灵动骑士" tabindex="-1"><a class="header-anchor" href="#灵动骑士"><span><RouteLink to="/demo-0.0.1/character/superhero/character-EtherealKnight.html">灵动骑士</RouteLink></span></a></h1>
+<template><div><LeadBlock :summary="$frontmatter.summary" :quote="$frontmatter.quote" /><h1 id="灵动骑士" tabindex="-1"><a class="header-anchor" href="#灵动骑士"><span><RouteLink to="/demo-0.0.1/character/superhero/character-EtherealKnight.html">灵动骑士</RouteLink></span></a></h1>
 <div class="ai-row">
 <AIMedia src="/images/EtherealKnightCombatSuit.jpg" caption="战斗状态"/>
 <AIMedia src="/images/EtherealKnightEverydayWear.jpg" caption="常服"/>
