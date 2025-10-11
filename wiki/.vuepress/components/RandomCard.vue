@@ -210,7 +210,7 @@ onMounted(init)
   line-clamp: 3;
 }
 
-/* ====== 空态（未拿到候选） ====== */
+/* ====== 空态（未拿到候选） ====== */   
 .random-card.empty {
   width: 100%;
   margin: 16px 0 0;
