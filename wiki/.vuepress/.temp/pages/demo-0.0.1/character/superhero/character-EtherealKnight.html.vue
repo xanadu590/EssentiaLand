@@ -1,10 +1,10 @@
-<template><div><LeadBlock :summary="$frontmatter.summary" :quote="$frontmatter.quote" /><h1 id="灵动骑士" tabindex="-1"><a class="header-anchor" href="#灵动骑士"><span><RouteLink to="/demo-0.0.1/character/superhero/character-EtherealKnight.html">灵动骑士</RouteLink></span></a></h1>
+<template><div><h1 id="灵动骑士" tabindex="-1"><a class="header-anchor" href="#灵动骑士"><span><RouteLink to="/demo-0.0.1/character/superhero/character-EtherealKnight.html">灵动骑士</RouteLink></span></a></h1>
 <div class="ai-row">
 <AIMedia src="/images/EtherealKnightCombatSuit.jpg" caption="战斗状态"/>
 <AIMedia src="/images/EtherealKnightEverydayWear.jpg" caption="常服"/>
 </div>
 <h2 id="基本信息" tabindex="-1"><a class="header-anchor" href="#基本信息"><span>基本信息</span></a></h2>
-<ul>
+<LeadBlock quote="光之所在，即是吾之归途。" /><ul>
 <li>姓名：宇文南城</li>
 <li>性别：女</li>
 <li>英雄名：灵动骑士（Ethereal Knight)</li>

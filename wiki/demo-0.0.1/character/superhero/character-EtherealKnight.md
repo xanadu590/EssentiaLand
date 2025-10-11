@@ -10,10 +10,7 @@ tag:
 - 世界英雄
 isOriginal: true
 summary: 以速度与直觉见长的近战守护者。
-quote: 光之所在，即是吾之归途。
 ---
-
-<LeadBlock :summary="$frontmatter.summary" :quote="$frontmatter.quote" />
 
 # [灵动骑士][EtherealKnight]
 
@@ -23,6 +20,9 @@ quote: 光之所在，即是吾之归途。
 </div>
 
 ## 基本信息
+
+<LeadBlock quote="光之所在，即是吾之归途。" />
+
 * 姓名：宇文南城
 * 性别：女
 * 英雄名：灵动骑士（Ethereal Knight)
