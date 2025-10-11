@@ -6,3 +6,5 @@ sidebar: false
 
 ## 基本信息
 * 姓名：
+
+<RandomSidebar :count="6" :sticky="true" />

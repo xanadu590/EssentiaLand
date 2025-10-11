@@ -3,6 +3,6 @@
 <ul>
 <li>姓名：</li>
 </ul>
-</div></template>
+<RandomSidebar :count="6" :sticky="true" /></div></template>
 
 
