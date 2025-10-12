@@ -153,6 +153,20 @@ export default hopeTheme({
       contributors: false,   // 不显示贡献者
     },
 
+     // ✅ 在 theme 里配置 slimsearch（不要在 config.ts 再注册）
+    slimsearch: {
+      indexContent: true,
+      locales: {
+        '/':    { placeholder: '搜索文档' },
+        '/en/': { placeholder: 'Search' },
+      },
+      hotKeys: [{ key: 'k', ctrl: true }, { key: '/', ctrl: true }],
+      queryHistoryCount: 5,
+      resultHistoryCount: 5,
+      searchDelay: 150,
+      // 如需过滤页面：filter: (page) => page.path !== '/drafts/',
+    },
+
     // ⚠️ 如果之前配置过 search 或 search-pro，请删除或关闭，避免冲突
     // search: false,
     // 'search-pro': false,

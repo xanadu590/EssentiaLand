@@ -1,52 +1,63 @@
+<!-- wiki/.vuepress/components/BlackoutText.vue -->
 <template>
-  <!-- 黑幕文字组件 -->
   <span
-    class="blackout"
-    :class="{ revealed }"
-    @click="toggle"
+    class="zw-blackout"
+    :class="{ reveal: open }"
+    role="button"
+    tabindex="0"
+    :aria-pressed="open ? 'true' : 'false'"
+    @click="open = !open"
+    @keydown.enter.prevent="open = !open"
+    @keydown.space.prevent="open = !open"
   >
     <slot />
   </span>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-
-/**
- * 控制点击状态
- * revealed = 是否已揭示
- */
-const revealed = ref(false)
-
-const toggle = () => {
-  revealed.value = !revealed.value
-}
+const open = ref(false) // 默认遮住；点击展开/收起
 </script>
 
 <style scoped>
-/* 黑幕基础样式 */
-.blackout {
-  display: inline;               /* 保持行内布局 */
-  color: transparent;
-  background-color: #000;
-  background-clip: padding-box;  /* 避免背景延伸到边界外 */
-  border-radius: 3px;
-  padding: 0 0.25em;             /* 适当减小左右留白，减少换行残影概率 */
+/* 可调参数 */
+.zw-blackout{
+  --blk-bg: #000;     /* 黑幕颜色 */
+  --blk-radius: .25em;
+  --blk-pad-x: .2em;
+  --blk-pad-y: .05em;
+}
+
+/* 直接用背景做“黑幕”，不需要 ::before 也不需要定位 */
+.zw-blackout{
+  display: inline;
+  box-decoration-break: clone;       /* 多行逐行绘制背景，杜绝行尾残影 */
+  -webkit-box-decoration-break: clone;
+
+  background: var(--blk-bg);
+  color: transparent;                /* 隐藏文字颜色 */
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+
+  border-radius: var(--blk-radius);
+  padding: var(--blk-pad-y) var(--blk-pad-x);
+
   cursor: pointer;
-  transition: color .25s ease, background-color .25s ease, box-shadow .25s ease;
-  user-select: none;
-  box-shadow: 0 0 2px #000;
-  overflow: hidden;              /* 换行时裁掉背景边缘 */
+  user-select: none;                 /* 折叠时不让选中文字防止露字 */
+  transition: background .12s ease, color .12s ease;
 }
 
-.blackout:hover { background-color: #111; }
-
-.blackout.revealed {
-  color: inherit !important;
-  background-color: transparent !important; /* 强制清干净 */
-  box-shadow: none;
+/* 展开：去掉背景，恢复文字 */
+.zw-blackout.reveal{
+  background: transparent;
+  color: inherit;
+  -webkit-text-fill-color: initial;
+  user-select: text;
 }
 
-html[data-theme="dark"] .blackout { background-color: #444; box-shadow: 0 0 3px #000; }
-html[data-theme="dark"] .blackout:hover { background-color: #555; }
+/* 无障碍：键盘聚焦可见 */
+.zw-blackout:focus-visible{
+  outline: 0px solid color-mix(in oklab, var(--blk-bg), transparent 70%);
+  outline-offset: 0px;
+}
 </style>
