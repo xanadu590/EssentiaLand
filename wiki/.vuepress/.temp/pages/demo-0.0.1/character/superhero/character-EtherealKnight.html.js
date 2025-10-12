@@ -1,5 +1,5 @@
 import comp from "C:/Users/super/ZenithWorld/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/character-EtherealKnight.html.vue"
-const data = JSON.parse("{\"path\":\"/demo-0.0.1/character/superhero/character-EtherealKnight.html\",\"title\":\"灵动骑士\",\"lang\":\"zh-CN\",\"frontmatter\":{\"title\":\"灵动骑士\",\"sidebar\":false,\"categroy\":[\"人类\",\"英雄\",\"异能者\"],\"tag\":[\"灵动骑士\",\"世界英雄\"],\"isOriginal\":true,\"summary\":\"以速度与直觉见长的近战守护者。\",\"description\":\"基本信息\"},\"git\":{\"createdTime\":1759636241000,\"updatedTime\":1760204109000},\"readingTime\":{\"minutes\":8.23,\"words\":2469},\"filePathRelative\":\"demo-0.0.1/character/superhero/character-EtherealKnight.md\",\"autoDesc\":true}")
+const data = JSON.parse("{\"path\":\"/demo-0.0.1/character/superhero/character-EtherealKnight.html\",\"title\":\"灵动骑士\",\"lang\":\"zh-CN\",\"frontmatter\":{\"title\":\"灵动骑士\",\"sidebar\":false,\"categroy\":[\"人类\",\"英雄\",\"异能者\"],\"tag\":[\"灵动骑士\",\"世界英雄\"],\"isOriginal\":true,\"summary\":\"以速度与直觉见长的近战守护者。\",\"description\":\"基本信息\"},\"git\":{\"createdTime\":1759636241000,\"updatedTime\":1760254916000},\"readingTime\":{\"minutes\":8.27,\"words\":2480},\"filePathRelative\":\"demo-0.0.1/character/superhero/character-EtherealKnight.md\",\"autoDesc\":true}")
 export { comp, data }
 
 if (import.meta.webpackHot) {
