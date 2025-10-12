@@ -8,21 +8,21 @@
     >
       <!-- 内部路由优先 -->
       <RouterLink v-if="isInner(p.link)" :to="p.link" class="card-link">
-        <img class="avatar" :src="p.avatar" :alt="p.name" loading="lazy" />
+        <img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
         <div class="name">{{ p.name }}</div>
         <div class="role" v-if="p.role">{{ p.role }}</div>
       </RouterLink>
 
       <!-- 外部链接 -->
       <a v-else-if="p.link" :href="p.link" class="card-link" target="_blank" rel="noopener">
-        <img class="avatar" :src="p.avatar" :alt="p.name" loading="lazy" />
+        <img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
         <div class="name">{{ p.name }}</div>
         <div class="role" v-if="p.role">{{ p.role }}</div>
       </a >
 
       <!-- 无链接 -->
       <div v-else class="card-link">
-        <img class="avatar" :src="p.avatar" :alt="p.name" loading="lazy" />
+        <img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
         <div class="name">{{ p.name }}</div>
         <div class="role" v-if="p.role">{{ p.role }}</div>
       </div>
@@ -33,7 +33,7 @@
 <script setup lang="ts">
 // [CHANGE] 新增：支持 props + Frontmatter 双来源
 import { computed } from 'vue'
-import { usePageFrontmatter } from 'vuepress/client'
+import { usePageFrontmatter, withBase } from 'vuepress/client'
 
 type RelationItem = {
   name: string
@@ -57,6 +57,9 @@ const data = computed<RelationItem[]>(() => {
 
 // 判断是否为站内路由（以 / 开头）
 const isInner = (link?: string) => !!link && link.startsWith('/')
+
+// [CHANGE] 图片 src 统一补 base（/ 开头时），外链/相对路径保持原样
+const srcUrl = (u?: string) => (!u ? '' : u.startsWith('/') ? withBase(u) : u)
 </script>
 
 <style scoped>

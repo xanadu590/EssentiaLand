@@ -19,6 +19,9 @@ import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue'
  * ---------------------------------------------------------------------------*/
 import 'vis-network/styles/vis-network.css'
 
+/** [CHANGE]：为补 base 引入 withBase */
+import { withBase } from '@vuepress/client'
+
 /** ----------------------------------------------------------------------------
  *  类型：节点与边
  *  作用：限定 props 的数据结构，便于类型提示与校验
@@ -70,6 +73,13 @@ const HOVER_EDGE_FONT_SIZE = 16
 // ★ 默认头像：当某节点未提供 image 时，自动用这张
 const DEFAULT_NODE_IMAGE = '/image/LOGO-character.png'  // 请确保这张图存在
 
+/** [CHANGE] 统一处理图片地址：/ 开头补 base，其它原样返回 */
+function imgUrl(u?: string) {
+  if (!u) return ''
+  if (/^https?:\/\//i.test(u)) return u
+  return u.startsWith('/') ? withBase(u) : u
+}
+
 /** ----------------------------------------------------------------------------
  *  计算：容器样式
  *  作用：支持动态高度，且适配明暗主题的容器外观
@@ -106,16 +116,14 @@ async function init() {
   // 动态导入，避免 SSR 期引用窗口对象
   const { Network, DataSet } = await import('vis-network/standalone')
 
-  // 构造安全节点数组：如果节点包含 image 则使用 circularImage 形状，并通过 font.vadjust 向上微调文字位置，
-  // 以修正带图片节点文字过远的问题；否则使用默认 dot 形状和字体。
-  // ★ 统一为圆形头像：没有 image 的节点自动使用默认头像
+  // 构造安全节点数组：统一为圆形头像；没有 image 的节点自动使用默认头像
   const safeNodes = (props.nodes ?? []).map(n => {
     const img = n.image ?? DEFAULT_NODE_IMAGE
     return {
       ...n,
-      image: img,                  // ★ 补上图片（无则用默认）
-      shape: 'circularImage',      // ★ 统一用圆形图片节点
-      font: { vadjust: 0 },      // ★ 图像节点把文字微微上调（可按需要调整）
+      image: imgUrl(img),            // [CHANGE] 补 base
+      shape: 'circularImage',
+      font: { vadjust: 0 },
     }
   })
 
@@ -132,7 +140,7 @@ async function init() {
   edgeDS = new DataSet(
     (props.edges ?? []).map(e => ({
       ...e,
-      label: e.label ?? (e.type ? edgeLabelByType[e.type] : undefined), // ★ 新增：把文字带给连线
+      label: e.label ?? (e.type ? edgeLabelByType[e.type] : undefined),
       color: edgeColor(e.type),
       width: DEFAULT_EDGE_WIDTH,
       arrows: { to: { enabled: false } },
@@ -140,9 +148,7 @@ async function init() {
   )
 
   // 全局选中（加粗）样式：保证文字颜色“不变化”，仅加粗
-  // 注意：这里配置的是“选中态”的文字样式（我们在 hover 时临时选择该节点）
-  // ★ 修改点：用解析后的实色值，确保明暗主题下都正确
-  const fontCommonColor = cssVar('--c-text', '#111')   // ★
+  const fontCommonColor = cssVar('--c-text', '#111')
 
   const options = {
     layout: { improvedLayout: true },
@@ -151,8 +157,8 @@ async function init() {
         stabilization: true,
         solver: 'forceAtlas2Based',  // 或 'barnesHut'，默认是这个
         forceAtlas2Based: {
-          springLength: 200,     // ★ 节点之间的理想距离（默认 100）
-          springConstant: 0.02,  // 弹性强度，数值越小越松散
+          springLength: 200,
+          springConstant: 0.02,
         },
       },
     nodes: {
@@ -167,36 +173,33 @@ async function init() {
           background: 'var(--vp-c-bg-soft, #f8fafc)',
         },
       },
-      // 默认字体 + “选中态”字体：颜色保持不变，仅加粗
       font: {
-        color: fontCommonColor,     // ★ 使用解析后的实色
+        color: fontCommonColor,
         face: 'sans-serif',
         size: 14,
         bold: {
-          color: fontCommonColor,   // ★ 选中时仍用同色
+          color: fontCommonColor,
         },
       },
       // 头像加载失败时的占位
-      brokenImage: '/image/LOGO-character.png',
+      brokenImage: imgUrl(DEFAULT_NODE_IMAGE),   // [CHANGE] 补 base
     },
     edges: {
       smooth: { enabled: true, type: 'dynamic' },
       color: { color: '#94a3b8', highlight: '#3eaf7c' },
       width: DEFAULT_EDGE_WIDTH,
-      // ★ 修改点：连线文字颜色使用解析后的实色，保证暗色主题能变白
       font: {
-        color: fontCommonColor,     // ★ 关键：Canvas 需要实色，不支持 var()
+        color: fontCommonColor,
         size: DEFAULT_EDGE_FONT_SIZE,
         face: 'sans-serif',
         strokeWidth: 0,
-        // background: 'rgba(255,255,255,.85)',
         align: 'top',
         vadjust: -2,
       },
       labelHighlightBold: false,
     },
     interaction: {
-      hover: true,    // 必须打开，才能响应 hoverNode / blurNode
+      hover: true,
       zoomView: true,
       dragView: true,
       selectable: true,
@@ -208,7 +211,6 @@ async function init() {
 
   /** ------------------------------------------------------------------------
    *  ★ 新增：监听主题切换（<html data-theme> 变化），动态更新文字颜色
-   *  作用：切到暗色时，边/节点文字立即变亮；切回亮色时恢复
    * -----------------------------------------------------------------------*/
   const applyThemeTextColor = () => {
     const c = cssVar('--c-text', '#111')
@@ -217,7 +219,7 @@ async function init() {
       edges: { font: { color: c } },
     })
   }
-  applyThemeTextColor() // 初始化后先应用一次
+  applyThemeTextColor()
 
   themeObserver?.disconnect()
   themeObserver = new MutationObserver(applyThemeTextColor)
@@ -237,43 +239,33 @@ async function init() {
   })
 
   /** ------------------------------------------------------------------------
-   *  交互：悬停节点 → 该节点图片变大、文字加粗（但不变色）、相连的边变粗
-   *  做法：
-   *    1) 通过 selectNodes 触发“选中态”从而加粗文字（颜色保持不变）
-   *    2) 临时把节点 size 调大
-   *    3) 把与之相连的边 width 调大
-   *    4) 连线文字字号随之放大
+   *  悬停放大/离开还原（保持原逻辑）
    * -----------------------------------------------------------------------*/
   net.on('hoverNode', ({ node }: { node: string | number }) => {
-    net.selectNodes([node], false)                 // 文字加粗但不变色
+    net.selectNodes([node], false)
     nodeDS.update({ id: node, size: HOVER_NODE_SIZE })
-
     const eids = net.getConnectedEdges(node)
     if (Array.isArray(eids) && eids.length) {
       edgeDS.update(
         eids.map(id => ({
           id,
           width: HOVER_EDGE_WIDTH,
-          font: { size: HOVER_EDGE_FONT_SIZE },   // 连线文字变大
+          font: { size: HOVER_EDGE_FONT_SIZE },
         })),
       )
     }
   })
 
-  /** ------------------------------------------------------------------------
-   *  交互：移出节点 → 恢复默认线宽、节点尺寸，并取消选中；连线文字字号还原
-   * -----------------------------------------------------------------------*/
   net.on('blurNode', ({ node }: { node: string | number }) => {
     net.unselectAll()
     nodeDS.update({ id: node, size: DEFAULT_NODE_SIZE })
-
     const eids = net.getConnectedEdges(node)
     if (Array.isArray(eids) && eids.length) {
       edgeDS.update(
         eids.map(id => ({
           id,
           width: DEFAULT_EDGE_WIDTH,
-          font: { size: DEFAULT_EDGE_FONT_SIZE }, // 还原连线文字
+          font: { size: DEFAULT_EDGE_FONT_SIZE },
         })),
       )
     }
@@ -282,7 +274,6 @@ async function init() {
 
 /** ----------------------------------------------------------------------------
  *  工具：边颜色映射
- *  作用：按关系类型返回统一的颜色
  * ---------------------------------------------------------------------------*/
 function edgeColor(type?: string) {
   const map: Record<string, string> = {
@@ -295,7 +286,7 @@ function edgeColor(type?: string) {
 }
 
 /** ----------------------------------------------------------------------------
- *  生命周期：挂载时初始化；数据变化时重建；卸载时销毁
+ *  生命周期：挂载/更新/卸载（保持原逻辑）
  * ---------------------------------------------------------------------------*/
 onMounted(async () => {
   await nextTick()
@@ -316,7 +307,6 @@ watch(
 onBeforeUnmount(() => {
   if (net && typeof net.destroy === 'function') net.destroy()
   net = null
-  // ★ 新增：卸载时断开主题观察器
   themeObserver?.disconnect()
   themeObserver = null
 })

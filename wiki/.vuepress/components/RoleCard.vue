@@ -23,7 +23,7 @@
         <img
           v-if="avatar"
           class="avatar"
-          :src="avatar"
+          :src="imgUrl(avatar)"
           alt="角色立绘"
           loading="lazy"
         />
@@ -108,7 +108,7 @@
         <img
           v-if="avatar"
           class="avatar"
-          :src="avatar"
+          :src="imgUrl(avatar)"
           alt="角色立绘"
           loading="lazy"
         />
@@ -236,6 +236,13 @@ const go = (href: string) => {
   // 站内路径：补 base，外链：原样
   const url = isInner(href) ? withBase(href) : href
   window.location.assign(url)
+}
+
+/** [新增] 统一处理图片地址（/ 开头补 base，其它原样） */
+function imgUrl(u?: string) {
+  if (!u) return ''
+  if (/^https?:\/\//i.test(u)) return u
+  return u.startsWith('/') ? withBase(u) : u
 }
 
 /**
