@@ -6,21 +6,34 @@
       class="card"
       :title="p.note || `${p.role || ''} ${p.name}`.trim()"
     >
-      <div class="card-link">
-        <!-- ✅ 第1行：标题 -->
+      <!--
+        ✅ 与 RandomSidebar 一致的跳转方式：
+        - 整张卡片主体作为可点击区域
+        - 内链通过 resolveLink 自动补 base
+        - 外链直接用原始 href
+      -->
+      <div
+        class="card-link"
+        :class="{ clickable: !!p.link }"
+        role="link"
+        tabindex="0"
+        @click="go(p)"
+        @keydown.enter.prevent="go(p)"
+      >
+        <!-- 第1行：标题（跨两列） -->
         <div class="name">{{ p.name }}</div>
 
-        <!-- ✅ 第2行：左图 -->
-        < img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
+        <!-- 第2行：左图 -->
+        <img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
 
-        <!-- ✅ 第2行：右侧信息 -->
+        <!-- 第2行：右侧信息 -->
         <div class="info">
           <div class="kv" v-if="p.role"><span class="k">别名</span><span class="v">{{ p.role }}</span></div>
           <div class="kv" v-if="p.note"><span class="k">状态</span><span class="v">{{ p.note }}</span></div>
           <div class="kv" v-if="p.extra"><span class="k">备注</span><span class="v">{{ p.extra }}</span></div>
         </div>
 
-        <!-- ✅ 第3行：附加文本 -->
+        <!-- 第3行：附加文本（跨两列） -->
         <div class="extra" v-if="p.desc">
           {{ p.desc }}
         </div>
@@ -32,6 +45,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { usePageFrontmatter, withBase } from '@vuepress/client'
+import { useRandomPool } from '../composables/useRandomPool'   // ✅ 引入以获得 resolveLink
 
 type RelationItem = {
   name: string
@@ -59,27 +73,33 @@ const data = computed<RelationItem[]>(() => {
   return (fm.value?.relations || []) as RelationItem[]
 })
 
+/** 与 RandomSidebar 一致：用 resolveLink 处理站内路径；外链原样返回 */
+const { resolveLink } = useRandomPool()
+const isExternal = (u?: string) => !!u && /^https?:\/\//i.test(u)
+function go(p: RelationItem) {
+  if (!p.link) return
+  const href = isExternal(p.link) ? p.link : resolveLink(p.link)
+  window.location.assign(href)
+}
+
+/** 图片 src 同样补 base（/开头时） */
 const srcUrl = (u?: string) => (!u ? '' : u.startsWith('/') ? withBase(u) : u)
 </script>
 
 <style scoped>
 /* ================================================================
-   ✅  外层网格布局（整页多卡片）
+   外层网格布局（整页多卡片）
 ================================================================ */
 .relation-cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
-@media (min-width: 640px) {
-  .relation-cards { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-}
-@media (min-width: 960px) {
-  .relation-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-}
+@media (min-width: 640px) { .relation-cards { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (min-width: 960px) { .relation-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
 /* ================================================================
-   ✅  单张卡片外观
+   单张卡片外观
 ================================================================ */
 .card {
   background: var(--vp-c-bg-soft, var(--c-bg, #fff));
@@ -99,13 +119,10 @@ html[data-theme="dark"] .card {
   box-shadow: 0 6px 16px rgba(0,0,0,.06);
   border-color: var(--c-brand, #3eaf7c);
 }
-html[data-theme="dark"] .card:hover {
-  box-shadow: 0 6px 16px rgba(0,0,0,.35);
-}
+html[data-theme="dark"] .card:hover { box-shadow: 0 6px 16px rgba(0,0,0,.35); }
 
 /* ================================================================
-   ✅  内部三行两列布局
-   支持参数调节
+   内部三行两列布局（支持参数调节）
 ================================================================ */
 /* 参数变量 */
 :root {
@@ -118,7 +135,7 @@ html[data-theme="dark"] .card:hover {
   --card-extra-gap: 6px;     /* 第三行与上方间距 */
 }
 
-/* 让每个卡片的内容三行两列排列 */
+/* 三行两列 */
 .card-link {
   display: grid;
   grid-template-columns: 96px 1fr;
@@ -126,9 +143,12 @@ html[data-theme="dark"] .card:hover {
   column-gap: var(--card-col-gap);
   row-gap: var(--card-row-gap);
   align-items: start;
+  text-decoration: none;
+  color: inherit;
 }
+.card-link.clickable { cursor: pointer; }
 
-/* ✅ 第1行：标题，跨两列，单行省略 */
+/* 第1行：标题，跨两列，单行省略 */
 .card-link .name {
   grid-column: 1 / -1;
   grid-row: 1;
@@ -141,7 +161,7 @@ html[data-theme="dark"] .card:hover {
   margin: 0;
 }
 
-/* ✅ 第2行：左图 */
+/* 第2行：左图 */
 .card-link .avatar {
   grid-column: 1;
   grid-row: 2;
@@ -154,7 +174,7 @@ html[data-theme="dark"] .card:hover {
   background: #f2f3f5;
 }
 
-/* ✅ 第2行：右侧信息 */
+/* 第2行：右侧信息 */
 .card-link .info {
   grid-column: 2;
   grid-row: 2;
@@ -164,21 +184,11 @@ html[data-theme="dark"] .card:hover {
   font-size: var(--card-info-size);
   line-height: 1.6;
 }
+.card-link .kv { display: grid; grid-template-columns: 48px 1fr; column-gap: 8px; }
+.card-link .k { color: var(--c-text, #111); font-weight: 600; }
+.card-link .v { color: var(--c-text-light, #65758b); }
 
-.card-link .kv {
-  display: grid;
-  grid-template-columns: 48px 1fr;
-  column-gap: 8px;
-}
-.card-link .k {
-  color: var(--c-text, #111);
-  font-weight: 600;
-}
-.card-link .v {
-  color: var(--c-text-light, #65758b);
-}
-
-/* ✅ 第3行：附加文本 */
+/* 第3行：附加文本（跨两列） */
 .card-link .extra {
   grid-column: 1 / -1;
   grid-row: 3;
@@ -188,13 +198,11 @@ html[data-theme="dark"] .card:hover {
   color: var(--c-text-light, #65758b);
   overflow: hidden;
   text-overflow: ellipsis;
-  /* 多行省略可解开以下三行：
+  /* 多行省略可按需打开：
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   */
 }
-html[data-theme="dark"] .card-link .extra {
-  color: #b4bdc6;
-}
+html[data-theme="dark"] .card-link .extra { color: #b4bdc6; }
 </style>
