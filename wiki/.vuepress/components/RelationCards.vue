@@ -1,3 +1,4 @@
+<!-- wiki/.vuepress/components/RelationCards.vue -->
 <template>
   <div class="relation-cards">
     <div
@@ -6,25 +7,17 @@
       class="card"
       :title="p.note || `${p.role || ''} ${p.name}`.trim()"
     >
-      <!--
-        ✅ 与 RandomSidebar 一致的跳转方式：
-        - 整张卡片主体作为可点击区域
-        - 内链通过 resolveLink 自动补 base
-        - 外链直接用原始 href
-      -->
-      <div
-        class="card-link"
-        :class="{ clickable: !!p.link }"
-        role="link"
-        tabindex="0"
-        @click="go(p)"
-        @keydown.enter.prevent="go(p)"
+      <!-- ✅ 站内链接：用 RouterLink + resolveLink（最稳；自动处理 base） -->
+      <RouterLink
+        v-if="p.link && isInner(p.link)"
+        class="card-link clickable"
+        :to="resolveLink(p.link)"
       >
         <!-- 第1行：标题（跨两列） -->
         <div class="name">{{ p.name }}</div>
 
         <!-- 第2行：左图 -->
-        <img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
+        < img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
 
         <!-- 第2行：右侧信息 -->
         <div class="info">
@@ -34,9 +27,37 @@
         </div>
 
         <!-- 第3行：附加文本（跨两列） -->
-        <div class="extra" v-if="p.desc">
-          {{ p.desc }}
+        <div class="extra" v-if="p.desc">{{ p.desc }}</div>
+      </RouterLink>
+
+      <!-- ✅ 外链：常规 <a>，不走 resolveLink -->
+      <a
+        v-else-if="p.link"
+        class="card-link clickable"
+        :href="p.link"
+        target="_blank"
+        rel="noopener"
+      >
+        <div class="name">{{ p.name }}</div>
+        < img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
+        <div class="info">
+          <div class="kv" v-if="p.role"><span class="k">别名</span><span class="v">{{ p.role }}</span></div>
+          <div class="kv" v-if="p.note"><span class="k">状态</span><span class="v">{{ p.note }}</span></div>
+          <div class="kv" v-if="p.extra"><span class="k">备注</span><span class="v">{{ p.extra }}</span></div>
         </div>
+        <div class="extra" v-if="p.desc">{{ p.desc }}</div>
+      </a >
+
+      <!-- ✅ 无链接：不可点击的展示块 -->
+      <div class="card-link" v-else>
+        <div class="name">{{ p.name }}</div>
+        < img class="avatar" :src="srcUrl(p.avatar)" :alt="p.name" loading="lazy" />
+        <div class="info">
+          <div class="kv" v-if="p.role"><span class="k">别名</span><span class="v">{{ p.role }}</span></div>
+          <div class="kv" v-if="p.note"><span class="k">状态</span><span class="v">{{ p.note }}</span></div>
+          <div class="kv" v-if="p.extra"><span class="k">备注</span><span class="v">{{ p.extra }}</span></div>
+        </div>
+        <div class="extra" v-if="p.desc">{{ p.desc }}</div>
       </div>
     </div>
   </div>
@@ -45,7 +66,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { usePageFrontmatter, withBase } from '@vuepress/client'
-import { useRandomPool } from '../composables/useRandomPool'   // ✅ 引入以获得 resolveLink
+import { useRandomPool } from '../composables/useRandomPool'
 
 type RelationItem = {
   name: string
@@ -60,29 +81,19 @@ type RelationItem = {
 const props = defineProps<{ items?: RelationItem[] }>()
 
 function useFM<T extends Record<string, unknown> = Record<string, unknown>>() {
-  try {
-    return usePageFrontmatter<T>()
-  } catch {
-    return ref({} as T)
-  }
+  try { return usePageFrontmatter<T>() } catch { return ref({} as T) }
 }
 
 const fm = useFM<{ relations?: RelationItem[] }>()
-const data = computed<RelationItem[]>(() => {
-  if (props.items?.length) return props.items
-  return (fm.value?.relations || []) as RelationItem[]
-})
+const data = computed<RelationItem[]>(() => props.items?.length ? props.items : (fm.value?.relations || []) as RelationItem[])
 
-/** 与 RandomSidebar 一致：用 resolveLink 处理站内路径；外链原样返回 */
+// 🔗 与 RandomSidebar 保持一致：resolveLink 负责补 base / demo- 前缀等
 const { resolveLink } = useRandomPool()
-const isExternal = (u?: string) => !!u && /^https?:\/\//i.test(u)
-function go(p: RelationItem) {
-  if (!p.link) return
-  const href = isExternal(p.link) ? p.link : resolveLink(p.link)
-  window.location.assign(href)
-}
 
-/** 图片 src 同样补 base（/开头时） */
+// 站内路由的判定：以 / 开头（无需强制 .html 或 / 结尾，resolveLink 会处理）
+const isInner = (u?: string) => !!u && u.startsWith('/')
+
+// 图片静态资源用 withBase 补 base
 const srcUrl = (u?: string) => (!u ? '' : u.startsWith('/') ? withBase(u) : u)
 </script>
 
@@ -124,7 +135,6 @@ html[data-theme="dark"] .card:hover { box-shadow: 0 6px 16px rgba(0,0,0,.35); }
 /* ================================================================
    内部三行两列布局（支持参数调节）
 ================================================================ */
-/* 参数变量 */
 :root {
   --card-title-size: 16px;   /* 标题字号 */
   --card-info-size: 14px;    /* 第二行信息字号 */
@@ -135,7 +145,6 @@ html[data-theme="dark"] .card:hover { box-shadow: 0 6px 16px rgba(0,0,0,.35); }
   --card-extra-gap: 6px;     /* 第三行与上方间距 */
 }
 
-/* 三行两列 */
 .card-link {
   display: grid;
   grid-template-columns: 96px 1fr;
@@ -148,7 +157,7 @@ html[data-theme="dark"] .card:hover { box-shadow: 0 6px 16px rgba(0,0,0,.35); }
 }
 .card-link.clickable { cursor: pointer; }
 
-/* 第1行：标题，跨两列，单行省略 */
+/* 第1行：标题（跨两列，单行省略） */
 .card-link .name {
   grid-column: 1 / -1;
   grid-row: 1;
@@ -198,11 +207,6 @@ html[data-theme="dark"] .card:hover { box-shadow: 0 6px 16px rgba(0,0,0,.35); }
   color: var(--c-text-light, #65758b);
   overflow: hidden;
   text-overflow: ellipsis;
-  /* 多行省略可按需打开：
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  */
 }
 html[data-theme="dark"] .card-link .extra { color: #b4bdc6; }
 </style>
