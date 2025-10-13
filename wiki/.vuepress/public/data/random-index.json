@@ -6,11 +6,6 @@
       "excerpt": "<WorldTimeline :items=\" { date: '2000年', title: '世纪末战争', detail: '五大势力首次交锋，世界秩序崩塌。' }, { date: '2020年', title: '巅峰议会成立',"
     },
     {
-      "title": "[1][WizardHope]",
-      "path": "/demo-0.0.1/character/superhero/1.html",
-      "excerpt": "1WizardHope 基本信息 姓名："
-    },
-    {
       "title": "[2][WizardHope]",
       "path": "/demo-0.0.1/character/superhero/2.html",
       "excerpt": "2WizardHope 基本信息 姓名："
