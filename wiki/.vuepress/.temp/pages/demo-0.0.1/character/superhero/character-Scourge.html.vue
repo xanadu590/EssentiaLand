@@ -1,6 +1,7 @@
 <template><div><h1 id="天灾" tabindex="-1"><a class="header-anchor" href="#天灾"><span><RouteLink to="/demo-0.0.1/character/superhero/character-Scourge.html">天灾</RouteLink></span></a></h1>
 <h2 id="基本信息" tabindex="-1"><a class="header-anchor" href="#基本信息"><span>基本信息</span></a></h2>
-<ul>
+<hr>
+<LeadBlock quote="啊哈哈！我很强的……干嘛！不要那样看着我！" /><ul>
 <li>姓名：尹守</li>
 <li>性别：男</li>
 <li>英雄名：天灾（Scourge)</li>
@@ -9,7 +10,7 @@
 <li>种族：人类</li>
 <li>出生年月：2004年5月20日</li>
 <li>职业：偶像经纪人</li>
-<li>学历：高中</li>
+<li>学历：大专毕业</li>
 <li>加入过的团体：世界英雄（World Hero)，九江联盟</li>
 </ul>
 <h2 id="外貌特征" tabindex="-1"><a class="header-anchor" href="#外貌特征"><span>外貌特征</span></a></h2>

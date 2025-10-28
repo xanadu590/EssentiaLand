@@ -1,238 +1,235 @@
 <template>
-  <div class="qa-card" :style="cardStyle">
-    <!-- 问题行 -->
-    <div class="q">
-      <span class="q-label">Q：</span>
-      <span class="q-text">{{ current?.q || '（暂无问题）' }}</span>
-      <button v-if="allowNext" class="btn-next" @click="nextOne">换一个</button>
+  <div class="qa-card" role="group" aria-label="问答卡">
+
+    <!-- 问题 -->
+    <div class="qa-row qa-question">
+      <span class="qa-badge">Q</span>
+          <div class="qa-text-row">
+        <div class="qa-text" v-html="cur?.q"></div>
+        <button class="qa-btn dice-btn" type="button" @click="next" title="换一题">
+          🎲
+        </button>
+      </div>
     </div>
 
-    <!-- 答案行（可揭示） -->
-    <div class="a" :class="{ reveal: !revealed }">
-      <span class="a-label">A：</span>
+    <!-- 答案（可遮罩） -->
+    <div class="qa-row qa-answer">
+      <span class="qa-badge qa-badge-a">A</span>
 
-      <!-- 未揭示：显示遮罩 -->
-      <span v-if="!revealed" class="mask" @click="revealed = true">
-        点击显示回答
-      </span>
+      <div class="qa-answer-box">
+        <!-- 遮罩：未揭示时显示 -->
+        <button
+          v-if="!revealed"
+          class="qa-mask"
+          type="button"
+          @click="revealed = true"
+          aria-label="点击查看答案"
+        >
+          点击查看答案
+        </button>
 
-      <!-- 已揭示：显示答案 -->
-      <span v-else class="a-text" v-html="safeHtml(current?.a)"></span>
+        <!-- 真正答案内容 -->
+        <div class="qa-text" v-show="revealed" v-html="cur?.a"></div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 /**
- * PersonaQACard
- * - 从“同一页面”的 <script type="application/json" id="qa-bank"> 读取 Q&A 数组
- * - 不显示头像/名称等头部，只保留“问题 + 答案”
- * - 支持：随机抽取，点击“换一个”，点击遮罩显示答案，暗色适配
- *
- * 使用方式见文件末尾注释。
+ * 用法：
+ * <QACard :bank="[{ q:'问题', a:'答案' }, ...]" />
+ * - 题库仅来自当前页面传入的 props（不会读全局）
+ * - “换一题”会在当前 bank 内随机切换
  */
+import { ref, onMounted, watch } from 'vue'
 
-import { ref, onMounted } from 'vue'
-
-type QA = { q: string; a: string }
+type QAItem = { q: string; a: string }
 
 const props = withDefaults(defineProps<{
-  /** JSON 脚本块的 id（同页读取），默认 'qa-bank' */
-  sourceId?: string
-  /** 初次加载是否随机抽取问题，默认 true */
-  randomOnMount?: boolean
-  /** 是否显示“换一个”按钮，默认 true */
-  allowNext?: boolean
-  /** 卡片宽高（可不传，走自适应） */
-  width?: number | string
-  height?: number | string
+  /** 题库：仅当前页面传入，当前页面内使用 */
+  bank: QAItem[]
+  /** 初始是否直接显示答案（默认 false = 遮住，点击后显示） */
+  revealInitially?: boolean
 }>(), {
-  sourceId: 'qa-bank',
-  randomOnMount: true,
-  allowNext: true,
+  revealInitially: false,
 })
 
-const pool = ref<QA[]>([])
-const idx = ref<number>(-1)
-const revealed = ref(false)
+const cur = ref<QAItem | null>(null)
+const revealed = ref<boolean>(props.revealInitially)
+const pool = ref<QAItem[]>([])
+const used = ref<number>(0)
 
-/** 生成内联样式：可在使用时传入 width/height */
-const cardStyle = {
-  width: typeof props.width === 'number' ? `${props.width}px` : (props.width || ''),
-  height: typeof props.height === 'number' ? `${props.height}px` : (props.height || ''),
-} as Record<string, string>
-
-/** 当前题目 */
-const current = ref<QA | null>(null)
-
-/** 读取页面上的 JSON Q&A */
-function loadFromDom(id: string) {
-  const el = document.getElementById(id)
-  if (!el) return []
-  try {
-    if (el.tagName.toLowerCase() === 'script' && (el as HTMLScriptElement).type === 'application/json') {
-      const json = JSON.parse(el.textContent || '[]')
-      return normalize(json)
-    }
-  } catch (e) {
-    console.warn('[PersonaQACard] JSON 解析失败：', e)
+function shuffle<T>(arr: T[]): T[] {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
   }
-  return []
+  return a
 }
 
-/** 兜底清洗 */
-function normalize(raw: any): QA[] {
-  if (!Array.isArray(raw)) return []
-  return raw
-    .map((x) => {
-      const q = String(x?.q ?? '').trim()
-      const a = String(x?.a ?? '').trim()
-      return q && a ? { q, a } : null
-    })
-    .filter(Boolean) as QA[]
+function refill() {
+  pool.value = shuffle(props.bank || [])
+  used.value = 0
 }
 
-/** 抽一个随机索引（避免与上一次重复） */
-function pickNextIndex(): number {
-  if (!pool.value.length) return -1
-  if (pool.value.length === 1) return 0
-  let n = Math.floor(Math.random() * pool.value.length)
-  if (n === idx.value) n = (n + 1) % pool.value.length
-  return n
+function next() {
+  if (!pool.value.length) refill()
+  if (!pool.value.length) { cur.value = null; return } // 空题库
+  if (used.value >= pool.value.length) refill()
+  cur.value = pool.value[used.value++]
+  revealed.value = props.revealInitially
 }
 
-/** 下一题 */
-function nextOne() {
-  revealed.value = false
-  idx.value = pickNextIndex()
-  current.value = idx.value >= 0 ? pool.value[idx.value] : null
-}
-
-/** 简易转义（允许 <br> 等），也可换成更严格的白名单渲染器 */
-function safeHtml(s?: string): string {
-  if (!s) return ''
-  // 允许手写换行：\n -> <br>
-  return s.replace(/\n/g, '<br>')
-}
-
-onMounted(() => {
-  pool.value = loadFromDom(props.sourceId)
-  if (!pool.value.length) {
-    console.warn(`[PersonaQACard] 没有在本页找到 id="${props.sourceId}" 的问答数据。`)
-    current.value = null
-    return
-  }
-  if (props.randomOnMount) {
-    nextOne()
-  } else {
-    idx.value = 0
-    current.value = pool.value[0]
-  }
-})
+onMounted(next)
+watch(() => props.bank, () => { refill(); next() }, { deep: true })
 </script>
 
 <style scoped>
-/* 卡片外观（可自由微调） */
-.qa-card {
+/* ============ 可调样式变量（看注释改数值即可） ============ */
+/* 卡片整体内边距 */
+.qa-card{
+  --qa-pad: 14px;
+
+  /* Q / A 圆角标尺寸与文字 */
+  --qa-badge-size: 22px;
+  --qa-badge-font: 12px;
+
+  /* Q 与文本的水平间距、两行之间的垂直间距 */
+  --qa-col-gap: 10px;
+  --qa-row-gap: 10px;
+
+  /* 标题行(问题)与答案行之间的距离（更直观地单独控制） */
+  --qa-q2a-gap: 12px;
+
+  /* 遮罩占位尺寸（未揭示时按钮区域） */
+  --qa-mask-min-h: 26px;     /* 高度 */
+  --qa-mask-pad: 0px 0px;  /* 内边距 */
+  --qa-mask-font: 14px;      /* 字号 */
+  --qa-mask-radius: 10px;    /* 圆角 */
+
+  /* 第三行（答案块）包裹色块（明/暗） */
+  --qa-ans-bg: rgba(0,0,0,.05);
+  --qa-ans-bg-dark: rgba(255,255,255,.08);
+
+  /* 文本颜色（明/暗主题走变量） */
+  color: var(--c-text, #111);
+
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0;               /* var(--qa-pad); */
+  border: none;             /* 1px solid var(--c-border, #e5e7eb); */
+  background: none;         /* var(--vp-c-bg-soft, var(--c-bg, #fff)); */
+  border-radius: 14px;
+  box-shadow: none;         /* 0 2px 12px rgba(0,0,0,.05); */
+  margin: 16px 0;
+}
+
+/* 顶部工具区（换一题） */
+.qa-toolbar{
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+.qa-btn{
   border: 1px solid var(--c-border, #e5e7eb);
   background: var(--vp-c-bg-soft, var(--c-bg, #fff));
-  border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(0,0,0,.05);
-  padding: 14px;
-  color: var(--c-text, #111);
-}
-
-/* 暗色模式适配 */
-html[data-theme="dark"] .qa-card{
-  border-color: #333;
-  background: var(--vp-c-bg-soft, #0b0f19);
-  color: var(--c-text, #e5e5e5);
-}
-
-/* 问题行 */
-.q{
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  line-height: 1.35;
-  margin-bottom: 8px; /* ← 调整“问题”和“答案”之间的行距 */
-}
-.q-label{
-  font-weight: 700;
-}
-.q-text{
-  flex: 1;
-  min-width: 0;
-}
-
-/* “换一个”按钮 */
-.btn-next{
-  flex: none;
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 6px;
-  border: 1px solid var(--c-border, #e5e7eb);
-  background: var(--vp-c-bg-soft, #f7f7f7);
   color: inherit;
+  padding: 6px 10px;
+  border-radius: 10px;
   cursor: pointer;
 }
-.btn-next:hover{
-  background: rgba(0,0,0,.06);
-}
-html[data-theme="dark"] .btn-next{
-  background: rgba(255,255,255,.04);
-  border-color: #3a3a3a;
-}
-html[data-theme="dark"] .btn-next:hover{
-  background: rgba(255,255,255,.08);
+
+/* 🎲骰子按钮样式 */
+.dice-btn {
+  border: none;
+  background: transparent;
+  font-size: 1.6rem;     /* ✅ 放大尺寸 */
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 2px;
 }
 
-/* 答案行 */
-.a{
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  line-height: 1.65;
+.dice-btn:hover {
+  transform: rotate(20deg) scale(1.2);  /* ✅ 悬停有轻微旋转和放大 */
 }
 
-/* 未揭示状态：显示遮罩块 */
-.a.reveal .mask{
-  display: flex;
+/* 暗色模式下稍微提亮 */
+html[data-theme="dark"] .dice-btn {
+  color: #e5e5e5;
+}
+
+/* 问/答两行 */
+.qa-row{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--qa-col-gap);
   align-items: center;
-  justify-content: center;
-  width: 100%;          /* 占满整行 */
-  min-height: 44px;     /* 遮罩高度（你可以改） */
-  border-radius: 8px;
-  background: rgba(0,0,0,.06);
-  color: var(--c-text-light, #65758b);
-  font-size: 0.92rem;
-  font-weight: 500;
-  text-align: center;
-  cursor: pointer;
-  transition: background .2s ease;
 }
-html[data-theme="dark"] .a.reveal .mask{
-  background: rgba(255,255,255,.08);
+.qa-row + .qa-row{
+  margin-top: var(--qa-row-gap);
 }
-.a.reveal .mask:hover{
-  background: rgba(0,0,0,.1);
-}
-html[data-theme="dark"] .a.reveal .mask:hover{
-  background: rgba(255,255,255,.12);
+/* 问题与答案之间的额外间距 */
+.qa-question + .qa-answer{
+  margin-top: var(--qa-q2a-gap);
 }
 
-/* 已揭示：正常文本 */
-.a-text{
-  white-space: normal;
+/* Q/A 圆角标 */
+.qa-badge{
+  display: inline-grid;
+  place-items: center;
+  width: var(--qa-badge-size);
+  height: var(--qa-badge-size);
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: var(--qa-badge-font);
+  color: #fff;
+  background: var(--c-brand, #3eaf7c);
+  user-select: none;
+}
+.qa-badge-a{
+  background: #64748b; /* slate */
+}
+
+/* 文本块 */
+.qa-text{
+  line-height: 1.6;
   word-break: break-word;
 }
 
-/* “Q: / A:” 标签 */
-.q-label, .a-label{
-  color: var(--c-text, #111);
-  font-weight: 700;
+.qa-text-row {
+  display: flex;
+  justify-content: space-between; /* ✅ 问题靠左，按钮靠右 */
+  align-items: center;
+  gap: 8px;
 }
-html[data-theme="dark"] .q-label, html[data-theme="dark"] .a-label{
+
+/* 答案容器带色块背景（随主题变） */
+.qa-answer .qa-answer-box{
+  background: var(--qa-ans-bg);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+html[data-theme="dark"] .qa-card .qa-answer .qa-answer-box{
+  background: var(--qa-ans-bg-dark);
+}
+
+/* 遮罩按钮（占位可调） */
+.qa-mask{
+  width: 100%;
+  min-height: var(--qa-mask-min-h);
+  padding: var(--qa-mask-pad);
+  border-radius: var(--qa-mask-radius);
+  border: 1px dashed var(--c-border, #d3d8df);
+  background: transparent;
+  color: var(--c-text, #111);
+  font-size: var(--qa-mask-font);
+  cursor: pointer;
+}
+html[data-theme="dark"] .qa-card .qa-mask{
   color: var(--c-text, #e5e5e5);
+  border-color: #3a3a3a;
 }
 </style>
