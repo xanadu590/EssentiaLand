@@ -7,18 +7,18 @@ import { viteBundler } from '@vuepress/bundler-vite'
 const isProd = process.env.NODE_ENV === 'production'
 
 export default defineUserConfig({
-  base:  isProd ? '/ZenithWorld/' : '/',
+  base:  isProd ? '/EssentiaLand/' : '/',
 
   locales: {
     "/en/": {
       lang: "en-US",
-      title: "ZenithWorld WIKI",
-      description: "ZenithWorld Original Worldbuilding WIKI",
+      title: "EssentiaLand WIKI",
+      description: "EssentiaLand Original Worldbuilding WIKI",
     },
     "/": {
       lang: "zh-CN",
-      title: "巅峰世界",
-      description: "ZenithWorld 原创世界观百科",
+      title: "魔法大陆",
+      description: "EssentiaLand 原创世界观百科",
     },
   },
 

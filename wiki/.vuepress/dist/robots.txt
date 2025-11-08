@@ -1,4 +1,4 @@
 User-agent:*
 Disallow:
 
-Sitemap: https://zenithworld.com/sitemap.xml
+Sitemap: https://EssentiaLand.com/sitemap.xml

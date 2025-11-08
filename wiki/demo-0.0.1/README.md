@@ -3,7 +3,7 @@ home: true
 title: 世界观总览
 icon: laptop-code
 heroText: 世界观总览
-tagline: ZenithWorld,我正在创造的原创世界观百科
+tagline: EssentiaLand,我正在创造的原创世界观百科
 
 highlights:
   - header: 角色总览

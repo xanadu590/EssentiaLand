@@ -4,7 +4,7 @@ import { enSidebar, zhSidebar } from "./sidebar/index.js";
 
 export default hopeTheme({
   // 🌍 站点主机名
-  hostname: "https://zenithworld.com",
+  hostname: "https://EssentiaLand.com",
 
   // 👤 作者信息
   author: {
@@ -18,7 +18,7 @@ export default hopeTheme({
   logo: "/images/LOGO-light.jpg",
 
   // 代码仓库（用于编辑链接或跳转到 GitHub）
-  repo: "xanadu590/ZenithWorld",
+  repo: "xanadu590/EssentiaLand",
 
   // 文档源目录（相对仓库根路径）
   docsDir: "wiki",

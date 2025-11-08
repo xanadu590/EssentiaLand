@@ -362,7 +362,7 @@ function ensureLeadingSlash(p: string) {
   步骤：
     1) 用 new URL 取 pathname（失败则保留原值）。
     2) ensureLeadingSlash 统一补前导 /。
-    3) 计算所有“可能的 base 前缀”（运行时 withBase('/')、自动识别的 /demo-* 或 /v*、手动维护的 /ZenithWorld/）。
+    3) 计算所有“可能的 base 前缀”（运行时 withBase('/')、自动识别的 /demo-* 或 /v*、手动维护的 /EssentiaLand/）。
     4) 从最长匹配开始剥离一个已知 base，得到纯站内路径。
 */
 function normalize(href: string): string {
@@ -386,7 +386,7 @@ function normalize(href: string): string {
   }
 
   // 手工维护的其它可能前缀（可按需增减）
-  const manualBases = ['/ZenithWorld/']
+  const manualBases = ['/EssentiaLand/']
 
   // 归一化、去空、按长度倒序（保证最长优先匹配）
   const knownBases = [runtimeBase, ...autoBases, ...manualBases]

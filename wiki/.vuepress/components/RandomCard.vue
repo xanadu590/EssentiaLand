@@ -154,7 +154,7 @@ function showPrev() {
 
 /*
   goCurrent：跳转到当前项链接
-  - 通过 resolveLink() 自动拼 base，保证在子路径部署（如 /zenithworld/）下也能正确跳转。
+  - 通过 resolveLink() 自动拼 base，保证在子路径部署（如 /EssentiaLand/）下也能正确跳转。
 */
 function goCurrent() {
   if (!current.value) return

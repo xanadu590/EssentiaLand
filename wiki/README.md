@@ -7,7 +7,7 @@ heroImageDark: /images/LOGO-dark.jpg
 bgImageStyle:
   background-attachment: fixed
 heroText: 巅峰世界
-tagline: ZenithWorld,我正在创造的原创世界观百科
+tagline: EssentiaLand,我正在创造的原创世界观百科
 actions:
   - text: 进入了解
     icon: lightbulb

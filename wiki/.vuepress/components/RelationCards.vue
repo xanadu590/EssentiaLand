@@ -79,7 +79,7 @@ const data = computed<RelationItem[]>(() => {
 const isInner = (link?: string) => !!link && link.startsWith('/')
 
 // // 图片 src 统一补 base（/ 开头时），外链/相对路径保持原样
-// // 例如：子路径部署 site.com/zenithworld/ 时，/image/a.png 会自动变成 /zenithworld/image/a.png
+// // 例如：子路径部署 site.com/EssentiaLand/ 时，/image/a.png 会自动变成 /EssentiaLand/image/a.png
 const srcUrl = (u?: string) => (!u ? '' : u.startsWith('/') ? withBase(u) : u)
 </script>
 

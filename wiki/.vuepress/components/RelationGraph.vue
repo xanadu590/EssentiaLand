@@ -48,7 +48,7 @@ import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue'
  * ---------------------------------------------------------------------------*/
 import 'vis-network/styles/vis-network.css'
 
-/** [CHANGE]：为补 base 引入 withBase（用于子路径部署，如 /zenithworld/） */
+/** [CHANGE]：为补 base 引入 withBase（用于子路径部署，如 /EssentiaLand/） */
 import { withBase } from '@vuepress/client'
 
 /** ----------------------------------------------------------------------------
