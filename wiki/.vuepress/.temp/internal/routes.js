@@ -1,7 +1,7 @@
 export const redirects = JSON.parse("{}")
 
 export const routes = Object.fromEntries([
-  ["/", { loader: () => import(/* webpackChunkName: "index.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/index.html.js"), meta: {"title":"巅峰世界","icon":"house"} }],
+  ["/", { loader: () => import(/* webpackChunkName: "index.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/index.html.js"), meta: {"title":"魔法之源","icon":"house"} }],
   ["/demo-0.0.1/characterline.html", { loader: () => import(/* webpackChunkName: "demo-0.0.1_characterline.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/demo-0.0.1/characterline.html.js"), meta: {"title":""} }],
   ["/demo-0.0.1/", { loader: () => import(/* webpackChunkName: "demo-0.0.1_index.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/demo-0.0.1/index.html.js"), meta: {"title":"世界观总览","icon":"laptop-code"} }],
   ["/demo-0.0.1/timeline.html", { loader: () => import(/* webpackChunkName: "demo-0.0.1_timeline.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/demo-0.0.1/timeline.html.js"), meta: {"title":"世界大事年表"} }],
@@ -26,6 +26,8 @@ export const routes = Object.fromEntries([
   ["/demo-0.0.1/character/superhero/character-WizardHope.html", { loader: () => import(/* webpackChunkName: "demo-0.0.1_character_superhero_character-WizardHope.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/character-WizardHope.html.js"), meta: {"title":"巫师希望"} }],
   ["/demo-0.0.1/character/superhero/", { loader: () => import(/* webpackChunkName: "demo-0.0.1_character_superhero_index.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/demo-0.0.1/character/superhero/index.html.js"), meta: {"title":"超级英雄"} }],
   ["/404.html", { loader: () => import(/* webpackChunkName: "404.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/404.html.js"), meta: {"title":""} }],
+  ["/demo-0.0.1/magicsystem/element/", { loader: () => import(/* webpackChunkName: "demo-0.0.1_magicsystem_element_index.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/demo-0.0.1/magicsystem/element/index.html.js"), meta: {"title":"魔法元素"} }],
+  ["/demo-0.0.1/magicsystem/", { loader: () => import(/* webpackChunkName: "demo-0.0.1_magicsystem_index.html" */"C:/Users/super/EssentiaLand/wiki/.vuepress/.temp/pages/demo-0.0.1/magicsystem/index.html.js"), meta: {"title":"魔法体系","icon":"user"} }],
 ]);
 
 if (import.meta.webpackHot) {
